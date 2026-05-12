@@ -1,0 +1,22 @@
+import type { BaitCategory } from '../types.js';
+
+const serverHeaderPool: Record<BaitCategory, string[]> = {
+  'cms-auth': ['Apache/2.4.41 (Ubuntu)', 'Apache/2.4.52 (Debian)', 'nginx/1.18.0'],
+  'config-leak': ['Apache/2.4.41 (Ubuntu)', 'nginx/1.20.1'],
+  'cve-recon': ['nginx/1.18.0', 'Microsoft-IIS/10.0'],
+  'ssrf-bait': ['EC2ws'],
+  webshell: ['Apache/2.4.41 (Ubuntu)'],
+  'api-recon': ['nginx/1.18.0'],
+  'iot-recon': ['lighttpd/1.4.39', 'Boa/0.94.14rc21'],
+  unknown: ['nginx/1.18.0'],
+};
+
+export function fingerprintHeaders(category: BaitCategory): Record<string, string> {
+  const pool = serverHeaderPool[category];
+  const server = pool[Math.floor(Math.random() * pool.length)] ?? 'nginx/1.18.0';
+  const headers: Record<string, string> = { Server: server };
+  if (category === 'cms-auth' || category === 'config-leak' || category === 'webshell') {
+    headers['X-Powered-By'] = 'PHP/7.4.3';
+  }
+  return headers;
+}
