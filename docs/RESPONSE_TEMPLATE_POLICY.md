@@ -13,9 +13,12 @@ All fabricated content returned by templates must comply with the following:
    - `EXAMPLE_AKIA1234567890ABCDEF`
    - `REDACTED_FOR_HONEYPOT`
    - `do-not-use-this-password`
-2. **No impersonation of real entities.** Fabricated organization names,
-   product names, and identifiers must be invented. Do not reference real
-   companies, real services, or real individuals.
+2. **No false attribution to real entities.** Fabricated content within
+   responses must use invented organization names, individuals, and contact
+   details. Visually mimicking a vulnerable service's interface is permitted
+   where it serves the honeypot function (HTML layout, CSS structure, generic
+   error phrasing), but do not reproduce trademarked logos and do not claim
+   that response content originates from a specific real organization.
 3. **Use the `.invalid` TLD for fabricated domains.** RFC 6761 reserves
    `.invalid` as never-resolvable, which prevents fake domain references from
    accidentally pointing at a real registration. Examples:
