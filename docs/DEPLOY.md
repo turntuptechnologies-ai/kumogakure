@@ -142,7 +142,7 @@ curl -i "$URL/wp-login.php"
 # WordPress login POST — should still return 200 with an error notice
 curl -i -X POST -d "log=admin&pwd=test" "$URL/wp-login.php"
 
-# Spring Actuator probe — currently returns the 404 stub
+# Spring Actuator probe — returns the default 404 response
 curl -i "$URL/actuator/health"
 ```
 
