@@ -1,4 +1,5 @@
 import type { TemplateFn, TemplateName } from '../../types.js';
+import { apiHealth } from './api-health.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { citrixVpn } from './citrix-vpn.js';
 import { drupalLogin } from './drupal-login.js';
@@ -11,12 +12,14 @@ import { fakeServerStatus } from './fake-server-status.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
+import { graphqlIntrospection } from './graphql-introspection.js';
 import { joomlaLogin } from './joomla-login.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
 import { springActuatorHealth } from './spring-actuator-health.js';
+import { swaggerFake } from './swagger-fake.js';
 import { uploadSuccess } from './upload-success.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
@@ -51,6 +54,9 @@ const templates: Record<string, TemplateFn> = {
   'aws-metadata-role': awsMetadataRole,
   'gcp-metadata-sa': gcpMetadataSa,
   'upload-success': uploadSuccess,
+  'swagger-fake': swaggerFake,
+  'graphql-introspection': graphqlIntrospection,
+  'api-health': apiHealth,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
