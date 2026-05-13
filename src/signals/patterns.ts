@@ -39,7 +39,10 @@ export const signalPatterns: SignalPattern[] = [
     ],
   },
   { name: 'ssrf-meta', matchers: [/169\.254\.169\.254/, /metadata\.google\.internal/i] },
-  { name: 'nosqli', matchers: [/\$where\s*:/i, /\$ne\s*:/i, /\$gt\s*:/i] },
+  {
+    name: 'nosqli',
+    matchers: [/\$where\b/i, /\$ne\b/i, /\$gt\b/i, /\$regex\b/i, /\$exists\b/i],
+  },
   { name: 'ldap-injection', matchers: [/\*\)\(uid=\*/i, /\*\)\(&/i] },
   { name: 'crlf', matchers: [/%0d%0a/i, /\r\n/] },
   { name: 'open-redirect', matchers: [/^\/\/[^/]/, /^\/\\[^\\]/, /https?:\/\/[^/]*@/i] },

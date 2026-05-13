@@ -7,4 +7,8 @@ export default defineConfig({
       wrangler: { configPath: './wrangler.toml' },
     }),
   ],
+  test: {
+    globalSetup: ['./tests/global-setup.ts'],
+    setupFiles: ['./tests/integration/setup.ts'],
+  },
 });
