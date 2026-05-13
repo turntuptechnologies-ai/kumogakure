@@ -38,6 +38,9 @@ wrangler deploy
 After deployment, the Worker is reachable at `kumogakure.<your-subdomain>.workers.dev`.
 Send a few probe requests and inspect the `requests` table.
 
+For a step-by-step walkthrough including R2 bucket creation, verification by
+`curl`, and troubleshooting, see [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Configuration
 
 `wrangler.toml` exposes:
@@ -60,10 +63,46 @@ src/
 ├── storage/            D1 and R2 adapters
 ├── fingerprint/        Anti-fingerprinting headers
 └── gc/                 Cron-triggered cleanup
+docs/                   Deployment and policy documentation
 migrations/             D1 schema migrations
 tests/                  Vitest unit and integration tests
 ```
 
+## Documentation
+
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — full deployment walkthrough from a fresh
+  clone, including resource provisioning, schema migrations, verification, and
+  troubleshooting.
+- [`docs/RESPONSE_TEMPLATE_POLICY.md`](docs/RESPONSE_TEMPLATE_POLICY.md) — the
+  rules every response template must follow (fake-data principles, realism
+  tiers, canary marker policy). Required reading before contributing a new
+  template.
+
+## Development
+
+After `pnpm install`, the following scripts are available:
+
+| Command | What it does |
+|---|---|
+| `pnpm dev` | Run the Worker locally with `wrangler dev` |
+| `pnpm typecheck` | Type-check the project with `tsc --noEmit` |
+| `pnpm lint` | Lint and check formatting via Biome |
+| `pnpm format` | Apply Biome formatting in place |
+| `pnpm test` | Run the Vitest suite once |
+| `pnpm test:watch` | Run Vitest in watch mode |
+| `pnpm migrations:apply` | Apply the D1 migrations against the remote database |
+
+### Adding a new bait path
+
+1. Decide which category fits (or introduce a new one in `src/types.ts`).
+2. Add the path to `src/bait/catalog.ts` (or a regex to `src/bait/patterns.ts`)
+   with a template name.
+3. Create the template module under `src/bait/templates/<name>.ts` exporting a
+   `TemplateFn`. Follow [`docs/RESPONSE_TEMPLATE_POLICY.md`](docs/RESPONSE_TEMPLATE_POLICY.md).
+4. Register the template in `src/bait/templates/index.ts`.
+5. Add a unit test under `tests/unit/templates/<name>.test.ts`.
+6. Verify with `pnpm typecheck`, `pnpm lint`, and `pnpm test`.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
