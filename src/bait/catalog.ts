@@ -55,7 +55,7 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'apache',
     template: 'fake-server-status',
   },
-  { path: '/.DS_Store', category: 'config-leak', subcategory: 'macos', template: 'fake-ds-store' },
+  { path: '/.DS_Store', category: 'config-leak', subcategory: 'macos', template: 'not-found' },
 
   // cve-recon
   {
