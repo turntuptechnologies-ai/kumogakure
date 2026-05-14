@@ -47,8 +47,14 @@ For a step-by-step walkthrough including R2 bucket creation, verification by
 
 - `BODY_R2_THRESHOLD` (default `8192`) — request body sizes (in bytes) above
   which the headers + body bundle is archived in R2.
+- `BODY_READ_LIMIT` (default `65536`) — maximum bytes read from a request
+  body before truncation. Bodies above this size are stored up to the
+  limit and marked `body_truncated = 1` in D1.
 - `RETENTION_DAYS` (default `30`) — how long captured requests are retained
   before the daily Cron deletes them.
+- `GC_BATCH_SIZE` (default `1000`) — page size for the retention sweep.
+  D1 rows are scanned in batches of this size and R2 deletes are issued
+  one array call per batch.
 
 ## Layout
 
@@ -85,6 +91,7 @@ After `pnpm install`, the following scripts are available:
 | Command | What it does |
 |---|---|
 | `pnpm dev` | Run the Worker locally with `wrangler dev` |
+| `pnpm types` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` (run after binding or var changes) |
 | `pnpm typecheck` | Type-check the project with `tsc --noEmit` |
 | `pnpm lint` | Lint and check formatting via Biome |
 | `pnpm format` | Apply Biome formatting in place |
