@@ -10,6 +10,7 @@ function buildEnv() {
     BODY_R2_THRESHOLD: '8192',
     BODY_READ_LIMIT: '65536',
     RETENTION_DAYS: '30',
+    GC_BATCH_SIZE: '1000',
   } satisfies Env;
   return { env, put };
 }
