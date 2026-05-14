@@ -18,68 +18,120 @@ app.all('*', async (c) => {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  const match = findExplicitBait(path) ?? findPatternBait(path);
-  const category: BaitCategory = match?.category ?? 'unknown';
-  const subcategory = match?.subcategory;
-  const templateName = match?.template ?? 'not-found';
+  try {
+    const match = findExplicitBait(path) ?? findPatternBait(path);
+    const category: BaitCategory = match?.category ?? 'unknown';
+    const subcategory = match?.subcategory;
+    const templateName = match?.template ?? 'not-found';
 
-  const method = request.method;
-  const bodyLimit = resolveBodyReadLimit(c.env.BODY_READ_LIMIT);
-  const {
-    body,
-    size: bodySize,
-    truncated: bodyTruncated,
-  } = await readRequestBody(request.clone(), bodyLimit);
-  const signals = detectAcross(request, body);
+    const method = request.method;
+    const bodyLimit = resolveBodyReadLimit(c.env.BODY_READ_LIMIT);
+    const {
+      body,
+      size: bodySize,
+      truncated: bodyTruncated,
+    } = await readRequestBody(request.clone(), bodyLimit);
+    const signals = detectAcross(request, body);
 
-  const template = getTemplate(templateName);
-  const baseResponse = template({ request, path, category, subcategory });
-  const response = new Response(baseResponse.body, baseResponse);
+    const template = getTemplate(templateName);
+    const baseResponse = template({ request, path, category, subcategory });
+    const response = new Response(baseResponse.body, baseResponse);
 
-  for (const [k, v] of Object.entries(fingerprintHeaders(category))) {
-    response.headers.set(k, v);
-  }
-
-  const id = uuidv7();
-  const ts = Math.floor(Date.now() / 1000);
-
-  let r2Key: string | undefined;
-  if (bodySize > 0 || signals.length > 0) {
-    r2Key = buildR2Key(id, ts);
-    const headers: Record<string, string> = {};
-    for (const [k, v] of request.headers.entries()) {
-      headers[k] = v;
+    for (const [k, v] of Object.entries(fingerprintHeaders(category))) {
+      response.headers.set(k, v);
     }
-    c.executionCtx.waitUntil(storePayload(c.env, r2Key, { headers, body }));
+
+    const id = uuidv7();
+    const ts = Math.floor(Date.now() / 1000);
+
+    let r2Key: string | undefined;
+    if (bodySize > 0 || signals.length > 0) {
+      r2Key = buildR2Key(id, ts);
+      const headers: Record<string, string> = {};
+      for (const [k, v] of request.headers.entries()) {
+        headers[k] = v;
+      }
+      const r2Target = r2Key;
+      c.executionCtx.waitUntil(
+        storePayload(c.env, r2Target, { headers, body }).catch((err) => {
+          console.error(
+            JSON.stringify({
+              msg: 'r2_store_failed',
+              id,
+              key: r2Target,
+              error: err instanceof Error ? err.message : String(err),
+            }),
+          );
+        }),
+      );
+    }
+
+    const cf = (request.cf ?? {}) as IncomingRequestCfProperties;
+
+    const record: RequestRecord = {
+      id,
+      ts,
+      ip: request.headers.get('cf-connecting-ip') ?? undefined,
+      asn: typeof cf.asn === 'number' ? cf.asn : undefined,
+      asn_org: typeof cf.asOrganization === 'string' ? cf.asOrganization : undefined,
+      country: typeof cf.country === 'string' ? cf.country : undefined,
+      method,
+      path,
+      query: url.search ? url.search.slice(1) : undefined,
+      ua: request.headers.get('user-agent') ?? undefined,
+      category,
+      subcategory,
+      status: response.status,
+      body_size: bodySize > 0 ? bodySize : undefined,
+      body_truncated: bodyTruncated ? true : undefined,
+      r2_key: r2Key,
+      signals: signals.length > 0 ? signals : undefined,
+      tls_version: typeof cf.tlsVersion === 'string' ? cf.tlsVersion : undefined,
+      tls_cipher: typeof cf.tlsCipher === 'string' ? cf.tlsCipher : undefined,
+    };
+
+    c.executionCtx.waitUntil(
+      insertRequest(c.env, record).catch((err) => {
+        console.error(
+          JSON.stringify({
+            msg: 'd1_insert_failed',
+            id,
+            error: err instanceof Error ? err.message : String(err),
+          }),
+        );
+      }),
+    );
+
+    console.log(
+      JSON.stringify({
+        msg: 'capture',
+        id,
+        method,
+        path,
+        category,
+        subcategory,
+        status: response.status,
+        body_size: bodySize,
+        body_truncated: bodyTruncated,
+        signals,
+      }),
+    );
+
+    return response;
+  } catch (err) {
+    console.error(
+      JSON.stringify({
+        msg: 'handler_error',
+        path,
+        method: request.method,
+        error: err instanceof Error ? err.message : String(err),
+      }),
+    );
+    return new Response('Not Found', {
+      status: 404,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
   }
-
-  const cf = (request.cf ?? {}) as IncomingRequestCfProperties;
-
-  const record: RequestRecord = {
-    id,
-    ts,
-    ip: request.headers.get('cf-connecting-ip') ?? undefined,
-    asn: typeof cf.asn === 'number' ? cf.asn : undefined,
-    asn_org: typeof cf.asOrganization === 'string' ? cf.asOrganization : undefined,
-    country: typeof cf.country === 'string' ? cf.country : undefined,
-    method,
-    path,
-    query: url.search ? url.search.slice(1) : undefined,
-    ua: request.headers.get('user-agent') ?? undefined,
-    category,
-    subcategory,
-    status: response.status,
-    body_size: bodySize > 0 ? bodySize : undefined,
-    body_truncated: bodyTruncated ? true : undefined,
-    r2_key: r2Key,
-    signals: signals.length > 0 ? signals : undefined,
-    tls_version: typeof cf.tlsVersion === 'string' ? cf.tlsVersion : undefined,
-    tls_cipher: typeof cf.tlsCipher === 'string' ? cf.tlsCipher : undefined,
-  };
-
-  c.executionCtx.waitUntil(insertRequest(c.env, record));
-
-  return response;
 });
 
 export default {
