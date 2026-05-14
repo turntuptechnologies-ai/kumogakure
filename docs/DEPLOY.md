@@ -66,7 +66,7 @@ database_name = "kumogakure"
 database_id = "00000000-0000-0000-0000-000000000000"
 ```
 
-**Copy the `database_id` value.** You will paste it into `wrangler.toml` in
+**Copy the `database_id` value.** You will paste it into `wrangler.jsonc` in
 the next step.
 
 ## 4. Create the R2 bucket
@@ -75,20 +75,23 @@ the next step.
 pnpm exec wrangler r2 bucket create kumogakure-payloads
 ```
 
-The bucket name matches the value already set in `wrangler.toml`. No
+The bucket name matches the value already set in `wrangler.jsonc`. No
 further configuration is needed here.
 
-## 5. Update `wrangler.toml`
+## 5. Update `wrangler.jsonc`
 
-Open `wrangler.toml` and replace the placeholder `database_id`:
+Open `wrangler.jsonc` and replace the placeholder `database_id`:
 
 ```diff
- [[d1_databases]]
- binding = "DB"
- database_name = "kumogakure"
--database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-+database_id = "00000000-0000-0000-0000-000000000000"
- migrations_dir = "migrations"
+ "d1_databases": [
+   {
+     "binding": "DB",
+     "database_name": "kumogakure",
+-    "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
++    "database_id": "00000000-0000-0000-0000-000000000000",
+     "migrations_dir": "migrations"
+   }
+ ]
 ```
 
 (Use the value from step 3, not the placeholder shown above.)
@@ -158,7 +161,7 @@ the bait catalog matches.
 
 ## 9. Daily retention
 
-The Cron Trigger defined in `wrangler.toml` runs at `0 0 * * *` (00:00
+The Cron Trigger defined in `wrangler.jsonc` runs at `0 0 * * *` (00:00
 UTC) and deletes records older than `RETENTION_DAYS` (default 30). No
 manual setup is needed; the trigger is registered as part of
 `wrangler deploy`.
@@ -176,7 +179,7 @@ simulate the trigger firing.
 
 ### "Couldn't find a `database_id`" during deploy
 
-`wrangler.toml` still contains the placeholder. Re-run step 5.
+`wrangler.jsonc` still contains the placeholder. Re-run step 5.
 
 ### "Database is locked" or migration errors
 
@@ -196,7 +199,7 @@ a production deployment.
 
 - Check that `pnpm exec wrangler tail` shows the Worker handling the
   request.
-- Confirm that the D1 binding name in `wrangler.toml` is `DB` (matches
+- Confirm that the D1 binding name in `wrangler.jsonc` is `DB` (matches
   `src/storage/d1.ts`).
 - Verify the Worker has the latest deployment by running
   `pnpm exec wrangler deployments list`.

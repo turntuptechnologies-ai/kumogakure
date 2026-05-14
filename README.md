@@ -30,7 +30,7 @@ A serverless low-interaction web honeypot for Cloudflare Workers.
 
 ```bash
 pnpm install
-wrangler d1 create kumogakure          # capture the database_id, paste into wrangler.toml
+wrangler d1 create kumogakure          # capture the database_id, paste into wrangler.jsonc
 wrangler d1 migrations apply kumogakure
 wrangler deploy
 ```
@@ -43,7 +43,7 @@ For a step-by-step walkthrough including R2 bucket creation, verification by
 
 ## Configuration
 
-`wrangler.toml` exposes:
+`wrangler.jsonc` exposes:
 
 - `BODY_R2_THRESHOLD` (default `8192`) — request body sizes (in bytes) above
   which the headers + body bundle is archived in R2.
