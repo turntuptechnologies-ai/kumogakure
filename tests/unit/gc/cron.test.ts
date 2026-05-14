@@ -75,9 +75,7 @@ describe('runDailyGc', () => {
       { r2_key: 'requests/2026/04/01/a.json.gz' },
       { r2_key: 'requests/2026/04/02/b.json.gz' },
     ]);
-    r2Delete
-      .mockRejectedValueOnce(new Error('R2 unavailable'))
-      .mockResolvedValueOnce(undefined);
+    r2Delete.mockRejectedValueOnce(new Error('R2 unavailable')).mockResolvedValueOnce(undefined);
 
     await expect(runDailyGc(env)).resolves.toBeUndefined();
 

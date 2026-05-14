@@ -15,18 +15,12 @@ export function buildR2Key(id: string, ts: number): string {
 
 export async function storePayload(env: Env, key: string, data: PayloadData): Promise<void> {
   const json = JSON.stringify(data);
-  const encoded = new TextEncoder().encode(json);
-  const compressed = await compressGzip(encoded);
+  const source = new Response(json).body;
+  if (!source) {
+    throw new Error('Failed to create source stream for payload');
+  }
+  const compressed = source.pipeThrough(new CompressionStream('gzip'));
   await env.PAYLOADS.put(key, compressed, {
     httpMetadata: { contentType: 'application/json', contentEncoding: 'gzip' },
   });
-}
-
-async function compressGzip(data: Uint8Array): Promise<ArrayBuffer> {
-  const stream = new Response(data).body;
-  if (!stream) {
-    throw new Error('Failed to create stream for compression');
-  }
-  const compressed = stream.pipeThrough(new CompressionStream('gzip'));
-  return await new Response(compressed).arrayBuffer();
 }
