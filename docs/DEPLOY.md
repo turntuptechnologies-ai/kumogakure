@@ -165,6 +165,18 @@ pnpm exec wrangler d1 execute kumogakure --remote --command \
 You should see one row per request, with `category` populated for paths
 the bait catalog matches.
 
+Confirm the structured logs are flowing end-to-end by streaming the
+Worker output while issuing another `curl`:
+
+```bash
+pnpm exec wrangler tail --format pretty
+```
+
+Each captured request emits a `"msg":"capture"` JSON line with the id,
+path, category, status, and signal list. Errors emit `"msg":"handler_error"`,
+and the daily GC run emits `gc_start` / `gc_complete` (or `gc_error` /
+`gc_r2_delete_failed` on failure).
+
 ## 9. Daily retention
 
 The Cron Trigger defined in `wrangler.jsonc` runs at `0 0 * * *` (00:00
@@ -223,6 +235,10 @@ attacker traffic before it reaches the Worker.
   never executes attacker-supplied content.
 - Captured request bodies and headers are archived in R2 only when the
   body is non-empty or one of the configured exploit signatures fires.
+- Request bodies above `BODY_READ_LIMIT` (default 64 KiB) are captured
+  only up to the limit and the row is flagged with `body_truncated = 1`
+  in D1. Filter on that column when analysing payloads whose true size
+  may have exceeded the cap.
 - Authentication credentials submitted to the bait login forms are logged
   to D1 along with the rest of the request metadata. Handle the database
   contents accordingly.
