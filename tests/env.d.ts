@@ -5,6 +5,7 @@ declare namespace Cloudflare {
     DB: D1Database;
     PAYLOADS: R2Bucket;
     BODY_R2_THRESHOLD: string;
+    BODY_READ_LIMIT: string;
     RETENTION_DAYS: string;
   }
 }

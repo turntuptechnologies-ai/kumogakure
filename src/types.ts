@@ -52,6 +52,7 @@ export interface Env {
   DB: D1Database;
   PAYLOADS: R2Bucket;
   BODY_R2_THRESHOLD: string;
+  BODY_READ_LIMIT: string;
   RETENTION_DAYS: string;
 }
 
@@ -70,6 +71,7 @@ export interface RequestRecord {
   subcategory?: string;
   status: number;
   body_size?: number;
+  body_truncated?: boolean;
   r2_key?: string;
   signals?: SignalName[];
   tls_version?: string;

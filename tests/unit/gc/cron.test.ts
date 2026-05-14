@@ -18,6 +18,7 @@ function buildEnv(retentionDays: string, expiredKeys: Array<{ r2_key: string }>)
     DB: { prepare } as unknown as D1Database,
     PAYLOADS: { delete: r2Delete } as unknown as R2Bucket,
     BODY_R2_THRESHOLD: '8192',
+    BODY_READ_LIMIT: '65536',
     RETENTION_DAYS: retentionDays,
   } satisfies Env;
   return { env, prepare, bind, all, run, r2Delete };
