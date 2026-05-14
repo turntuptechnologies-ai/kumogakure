@@ -72,6 +72,7 @@ src/
 docs/                   Deployment and policy documentation
 migrations/             D1 schema migrations
 tests/                  Vitest unit and integration tests
+worker-configuration.d.ts  Generated runtime types (committed; regenerate with `pnpm types`)
 ```
 
 ## Documentation
