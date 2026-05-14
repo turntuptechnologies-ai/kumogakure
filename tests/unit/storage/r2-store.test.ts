@@ -8,6 +8,7 @@ function buildEnv() {
     DB: {} as D1Database,
     PAYLOADS: { put } as unknown as R2Bucket,
     BODY_R2_THRESHOLD: '8192',
+    BODY_READ_LIMIT: '65536',
     RETENTION_DAYS: '30',
   } satisfies Env;
   return { env, put };

@@ -10,6 +10,7 @@ function buildEnv() {
     DB: { prepare } as unknown as D1Database,
     PAYLOADS: {} as R2Bucket,
     BODY_R2_THRESHOLD: '8192',
+    BODY_READ_LIMIT: '65536',
     RETENTION_DAYS: '30',
   } satisfies Env;
   return { env, prepare, bind, run };
@@ -46,7 +47,19 @@ describe('insertRequest', () => {
     const { env, bind } = buildEnv();
     await insertRequest(env, { ...baseRecord, signals: ['log4j', 'sqli'] });
     const args = bind.mock.calls[0] ?? [];
-    // signals column is the 16th bind argument (index 15)
-    expect(args[15]).toBe(JSON.stringify(['log4j', 'sqli']));
+    // signals column is the 17th bind argument (index 16)
+    expect(args[16]).toBe(JSON.stringify(['log4j', 'sqli']));
+  });
+
+  it('binds body_truncated as 1 when truncated and null otherwise', async () => {
+    const { env, bind } = buildEnv();
+    await insertRequest(env, { ...baseRecord, body_truncated: true });
+    const truncatedArgs = bind.mock.calls[0] ?? [];
+    expect(truncatedArgs[14]).toBe(1);
+
+    bind.mockClear();
+    await insertRequest(env, baseRecord);
+    const defaultArgs = bind.mock.calls[0] ?? [];
+    expect(defaultArgs[14]).toBeNull();
   });
 });

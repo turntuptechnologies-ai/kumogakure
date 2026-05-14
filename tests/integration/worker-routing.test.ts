@@ -32,4 +32,13 @@ describe('Worker routing', () => {
     expect(json.error).toBe('Not Found');
     expect(json.path).toBe('/actuator/beans');
   });
+
+  it('captures POST bodies up to the configured limit without buffering oversize payloads', async () => {
+    const oversized = 'A'.repeat(200_000);
+    const response = await SELF.fetch('http://example.test/wp-login.php', {
+      method: 'POST',
+      body: oversized,
+    });
+    expect(response.status).toBe(200);
+  });
 });

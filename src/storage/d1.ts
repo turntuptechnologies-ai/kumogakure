@@ -4,9 +4,9 @@ export async function insertRequest(env: Env, record: RequestRecord): Promise<vo
   await env.DB.prepare(
     `INSERT INTO requests (
       id, ts, ip, asn, asn_org, country, method, path, query, ua,
-      category, subcategory, status, body_size, r2_key, signals,
+      category, subcategory, status, body_size, body_truncated, r2_key, signals,
       tls_version, tls_cipher
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       record.id,
@@ -23,6 +23,7 @@ export async function insertRequest(env: Env, record: RequestRecord): Promise<vo
       record.subcategory ?? null,
       record.status,
       record.body_size ?? null,
+      record.body_truncated ? 1 : null,
       record.r2_key ?? null,
       record.signals ? JSON.stringify(record.signals) : null,
       record.tls_version ?? null,

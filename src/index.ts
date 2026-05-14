@@ -5,6 +5,7 @@ import { getTemplate } from './bait/templates/index.js';
 import { fingerprintHeaders } from './fingerprint/headers.js';
 import { runDailyGc } from './gc/cron.js';
 import { uuidv7 } from './id.js';
+import { readRequestBody, resolveBodyReadLimit } from './request-body.js';
 import { detectAcross } from './signals/detector.js';
 import { insertRequest } from './storage/d1.js';
 import { buildR2Key, storePayload } from './storage/r2.js';
@@ -23,7 +24,12 @@ app.all('*', async (c) => {
   const templateName = match?.template ?? 'not-found';
 
   const method = request.method;
-  const body = method === 'GET' || method === 'HEAD' ? '' : await request.clone().text();
+  const bodyLimit = resolveBodyReadLimit(c.env.BODY_READ_LIMIT);
+  const {
+    body,
+    size: bodySize,
+    truncated: bodyTruncated,
+  } = await readRequestBody(request.clone(), bodyLimit);
   const signals = detectAcross(request, body);
 
   const template = getTemplate(templateName);
@@ -36,7 +42,6 @@ app.all('*', async (c) => {
 
   const id = uuidv7();
   const ts = Math.floor(Date.now() / 1000);
-  const bodySize = new TextEncoder().encode(body).byteLength;
 
   let r2Key: string | undefined;
   if (bodySize > 0 || signals.length > 0) {
@@ -65,6 +70,7 @@ app.all('*', async (c) => {
     subcategory,
     status: response.status,
     body_size: bodySize > 0 ? bodySize : undefined,
+    body_truncated: bodyTruncated ? true : undefined,
     r2_key: r2Key,
     signals: signals.length > 0 ? signals : undefined,
     tls_version: typeof cf.tlsVersion === 'string' ? cf.tlsVersion : undefined,
