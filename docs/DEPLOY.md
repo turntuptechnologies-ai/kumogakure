@@ -34,8 +34,10 @@ cd kumogakure
 pnpm install
 ```
 
-The `pnpm install` step pulls in Hono, Wrangler, Biome, Vitest, and the
-Cloudflare Workers type definitions.
+The `pnpm install` step pulls in Hono, Wrangler, Biome, and Vitest.
+Workers runtime types are generated locally from `wrangler.jsonc` into
+`worker-configuration.d.ts` and committed to the repo — regenerate them
+with `pnpm types` whenever you change a binding or var.
 
 ## 2. Authenticate Wrangler
 
@@ -105,8 +107,9 @@ your account.
 pnpm exec wrangler d1 migrations apply kumogakure --remote
 ```
 
-This runs the SQL in `migrations/0001_init.sql` against the remote D1
-database, creating the `requests` and `daily_stats` tables.
+This applies every SQL file under `migrations/` against the remote D1
+database. The initial schema in `0001_init.sql` creates the `requests`
+and `daily_stats` tables; later migrations extend them.
 
 If you prefer to test locally first, omit `--remote` to apply against the
 local Miniflare-backed D1 emulator.
@@ -114,8 +117,11 @@ local Miniflare-backed D1 emulator.
 ## 7. Deploy the Worker
 
 ```bash
-pnpm deploy
+pnpm run deploy
 ```
+
+(`pnpm deploy <directory>` without `run` is a pnpm 10 built-in for
+monorepo subpackage deployment, so use the `run` form explicitly here.)
 
 Wrangler bundles the source, uploads it, and prints the public URL:
 
