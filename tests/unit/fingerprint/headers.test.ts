@@ -27,4 +27,13 @@ describe('fingerprintHeaders', () => {
     const server = fingerprintHeaders('iot-recon').Server;
     expect(server).toMatch(/lighttpd|Boa/);
   });
+
+  it('produces more than one distinct Server value across many samples', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      seen.add(fingerprintHeaders('cms-auth').Server);
+    }
+    // The cms-auth pool has 3 entries; with 100 samples we should hit at least 2.
+    expect(seen.size).toBeGreaterThan(1);
+  });
 });

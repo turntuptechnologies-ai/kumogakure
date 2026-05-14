@@ -13,7 +13,8 @@ const serverHeaderPool: Record<BaitCategory, string[]> = {
 
 export function fingerprintHeaders(category: BaitCategory): Record<string, string> {
   const pool = serverHeaderPool[category];
-  const server = pool[Math.floor(Math.random() * pool.length)] ?? 'nginx/1.18.0';
+  const idx = crypto.getRandomValues(new Uint32Array(1))[0] % pool.length;
+  const server = pool[idx] ?? 'nginx/1.18.0';
   const headers: Record<string, string> = { Server: server };
   if (category === 'cms-auth' || category === 'config-leak' || category === 'webshell') {
     headers['X-Powered-By'] = 'PHP/7.4.3';
