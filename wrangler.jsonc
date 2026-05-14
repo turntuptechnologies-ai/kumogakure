@@ -6,7 +6,12 @@
   "compatibility_flags": ["nodejs_compat"],
 
   "observability": {
-    "enabled": true
+    "enabled": true,
+    "logs": {
+      // 100% sampling: honeypot traffic is low-volume and every request is
+      // interesting, so we never want logs dropped at the head.
+      "head_sampling_rate": 1
+    }
   },
 
   "d1_databases": [
