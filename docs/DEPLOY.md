@@ -73,6 +73,17 @@ the next step.
 
 ## 4. Create the R2 bucket
 
+R2 must be enabled once at the account level before any bucket can be
+created. In the Cloudflare Dashboard, open **R2 Object Storage** and
+enable / subscribe to the R2 plan. Cloudflare requires a payment method
+on file even for the free tier, but the free allowance (10 GB storage,
+1M Class A and 10M Class B operations per month) is not billed — only
+usage beyond the limits is. Wrangler and the API cannot perform this
+activation; skipping it produces the `code: 10042` error (see
+Troubleshooting).
+
+Once R2 is enabled:
+
 ```bash
 pnpm exec wrangler r2 bucket create kumogakure-payloads
 ```
@@ -194,6 +205,21 @@ Then `curl` the local URL with `cf=__scheduled&time=$(date +%s)` to
 simulate the trigger firing.
 
 ## Troubleshooting
+
+### "Please enable R2 through the Cloudflare Dashboard" (`code: 10042`)
+
+R2 has never been enabled on the account, so `wrangler r2 bucket create`
+gets a 403. This is an account-level, one-time activation that only the
+dashboard can perform — see step 4. After enabling R2, re-run the bucket
+creation command.
+
+If R2 *is* enabled and you still see this, you may be authenticated
+against a different Cloudflare account than the one you enabled R2 on.
+Check the active account with:
+
+```bash
+pnpm exec wrangler whoami
+```
 
 ### "Couldn't find a `database_id`" during deploy
 
