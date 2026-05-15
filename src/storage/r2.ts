@@ -20,7 +20,11 @@ export async function storePayload(env: Env, key: string, data: PayloadData): Pr
     throw new Error('Failed to create source stream for payload');
   }
   const compressed = source.pipeThrough(new CompressionStream('gzip'));
-  await env.PAYLOADS.put(key, compressed, {
+  // R2.put requires a body of known length; a raw CompressionStream readable
+  // has none and put() rejects it. The payload is already bounded by
+  // BODY_READ_LIMIT, so buffering the compressed bytes here is safe.
+  const buffer = await new Response(compressed).arrayBuffer();
+  await env.PAYLOADS.put(key, buffer, {
     httpMetadata: { contentType: 'application/json', contentEncoding: 'gzip' },
   });
 }
