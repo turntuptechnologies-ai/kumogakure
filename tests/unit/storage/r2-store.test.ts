@@ -32,6 +32,10 @@ describe('storePayload', () => {
     expect(put).toHaveBeenCalledTimes(1);
     const [key, data, options] = put.mock.calls[0] ?? [];
     expect(key).toBe('requests/2026/05/13/test.json.gz');
+    // Regression guard (#47): R2.put needs a known-length body. A raw
+    // ReadableStream (e.g. straight from CompressionStream) is rejected by
+    // production R2, so the value must be a buffered ArrayBuffer.
+    expect(data).toBeInstanceOf(ArrayBuffer);
     expect(options?.httpMetadata?.contentEncoding).toBe('gzip');
 
     const decompressed = await gunzipToString(data as ArrayBuffer);
