@@ -204,6 +204,56 @@ pnpm exec wrangler dev --test-scheduled
 Then `curl` the local URL with `cf=__scheduled&time=$(date +%s)` to
 simulate the trigger firing.
 
+## Advanced: custom domain for CT-driven scanner traffic
+
+This step is **optional and not part of the default setup.** The
+default `*.workers.dev` deployment works fine, but it attracts very
+little opportunistic scanner traffic — and the reason is worth
+understanding.
+
+`*.workers.dev` is served behind a **wildcard TLS certificate**. The
+specific hostname (`kumogakure.<your-subdomain>.workers.dev`) is never
+issued its own certificate, so it **never appears in Certificate
+Transparency (CT) logs**. A large class of opportunistic scanners and
+attackers monitor CT logs in near real time and probe every newly seen
+hostname for exposed paths (`.env`, `/wp-login.php`, `/.git/config`,
+and so on). Because a workers.dev hostname is never logged, those
+CT-driven scanners never discover it. A workers.dev-only deployment can
+therefore sit for weeks with almost no traffic — this is expected, not
+a misconfiguration.
+
+To make the honeypot discoverable by CT-monitoring scanners, attach a
+custom domain you own:
+
+1. The domain must be an **active zone on the same Cloudflare account**.
+   Adding a zone is free on the Free plan — point the domain's
+   nameservers at Cloudflare and wait for it to go Active.
+2. In the dashboard: **Workers & Pages → your Worker → Settings →
+   Domains & Routes → Add → Custom Domain**. Enter a hostname such as
+   `vpn.example.com` or `admin.example.com`.
+3. Cloudflare creates the proxied DNS record and issues a certificate
+   for that exact hostname. That certificate **is** logged in CT, so
+   CT-monitoring scanners typically begin probing within minutes to a
+   few hours.
+
+Notes:
+
+- **Configure this in the dashboard, not in `wrangler.jsonc`.** Keeping
+  the operator-specific hostname out of the committed config keeps this
+  repository generic and reusable.
+- Use a dedicated subdomain on a domain with **no production services**
+  — changing nameservers moves all of that domain's DNS to Cloudflare.
+  A realistic-looking name (`vpn.`, `admin.`, `dev.`) attracts more
+  scanners.
+- Ensure WAF / Bot Fight Mode / Security Level are permissive for that
+  hostname (see the Troubleshooting entry below), or Cloudflare blocks
+  attacker traffic before it reaches the Worker.
+- Discovery is **not one-shot**: Cloudflare rotates the certificate
+  periodically, and each renewal produces a fresh CT entry that
+  re-triggers CT-monitoring scanners. Combined with mass internet
+  scanning that re-sweeps known hosts indefinitely, traffic grows over
+  time rather than arriving once.
+
 ## Resetting captured data
 
 To wipe everything (all R2 payload objects and all D1 rows) — useful

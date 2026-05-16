@@ -38,6 +38,12 @@ wrangler deploy
 After deployment, the Worker is reachable at `kumogakure.<your-subdomain>.workers.dev`.
 Send a few probe requests and inspect the `requests` table.
 
+> Note: a `*.workers.dev` deployment is not visible in Certificate
+> Transparency logs, so it attracts little opportunistic scanner traffic
+> on its own — this is expected. To make the honeypot discoverable by
+> CT-monitoring scanners, see the optional custom-domain setup in
+> [`docs/DEPLOY.md`](docs/DEPLOY.md#advanced-custom-domain-for-ct-driven-scanner-traffic).
+
 For a step-by-step walkthrough including R2 bucket creation, verification by
 `curl`, and troubleshooting, see [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
