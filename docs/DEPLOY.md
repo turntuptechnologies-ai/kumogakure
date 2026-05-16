@@ -204,6 +204,21 @@ pnpm exec wrangler dev --test-scheduled
 Then `curl` the local URL with `cf=__scheduled&time=$(date +%s)` to
 simulate the trigger firing.
 
+## Resetting captured data
+
+To wipe everything (all R2 payload objects and all D1 rows) — useful
+when clearing test traffic from a staging instance:
+
+```bash
+pnpm run reset:data -- --remote        # prompts for confirmation
+pnpm run reset:data -- --remote --yes  # skip the prompt
+```
+
+Without `--remote` it targets the local Miniflare-backed data. The
+script deletes R2 objects first (it derives their keys from D1), then
+truncates `requests` and `daily_stats`. This is irreversible — there is
+no soft delete or backup.
+
 ## Troubleshooting
 
 ### "Please enable R2 through the Cloudflare Dashboard" (`code: 10042`)

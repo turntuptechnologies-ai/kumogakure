@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "migrations:apply": "wrangler d1 migrations apply kumogakure"
+    "migrations:apply": "wrangler d1 migrations apply kumogakure",
+    "reset:data": "bash scripts/reset-data.sh"
   },
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
