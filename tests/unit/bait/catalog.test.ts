@@ -28,6 +28,13 @@ describe('bait catalog', () => {
     expect(paths).toContain('/HNAP1/');
   });
 
+  it('routes /mcp to the mcp decoy', () => {
+    const entry = findExplicitBait('/mcp');
+    expect(entry?.category).toBe('mcp-recon');
+    expect(entry?.subcategory).toBe('mcp');
+    expect(entry?.template).toBe('mcp');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

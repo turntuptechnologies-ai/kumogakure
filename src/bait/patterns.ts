@@ -43,6 +43,23 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'dotenv-variant',
     template: 'fake-env',
   },
+  // MCP servers (JSON-RPC 2.0 over the Streamable HTTP transport) are
+  // mounted at varied paths; scanners enumerate the common ones. /mcp
+  // itself is the explicit catalog entry (checked first); these cover
+  // the rest. /jsonrpc is generic JSON-RPC but routed here too — the
+  // template returns a JSON-RPC error for non-MCP bodies.
+  {
+    pattern: /^\/(?:jsonrpc|sse|messages)$/,
+    category: 'mcp-recon',
+    subcategory: 'mcp',
+    template: 'mcp',
+  },
+  {
+    pattern: /^\/(?:api\/)?mcp(?:\/.*)?$/,
+    category: 'mcp-recon',
+    subcategory: 'mcp',
+    template: 'mcp',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
