@@ -14,6 +14,7 @@ import { fakeWpConfig } from './fake-wp-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
+import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
 import { joomlaLogin } from './joomla-login.js';
 import { mcp } from './mcp.js';
@@ -65,6 +66,7 @@ const templates: Record<string, TemplateFn> = {
   'boa-form-login': boaFormLogin,
   mcp: mcp,
   phpinfo: phpinfo,
+  'gravity-smtp-system-report': gravitySmtpSystemReport,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
