@@ -89,6 +89,13 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'gitlab',
     template: 'gitlab-sign-in',
   },
+  {
+    // CVE-2026-4020: unauthenticated System Report disclosure.
+    path: '/wp-json/gravitysmtp/v1/tests/mock-data',
+    category: 'cve-recon',
+    subcategory: 'gravity-smtp',
+    template: 'gravity-smtp-system-report',
+  },
 
   // ssrf-bait
   {
