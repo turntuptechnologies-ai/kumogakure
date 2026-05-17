@@ -50,6 +50,33 @@ describe('bait patterns', () => {
     expect(findPatternBait('/jsonrpcx')).toBeUndefined();
   });
 
+  it('routes the phpinfo-probe family to the phpinfo decoy', () => {
+    for (const p of [
+      '/phpinfo.php',
+      '/info.php',
+      '/p.php',
+      '/i.php',
+      '/_phpinfo.php',
+      '/server-status.php',
+      '/admin/phpinfo.php',
+      '/test/phpinfo.php',
+      '/phpinfo',
+      '/info',
+      '/_profiler/phpinfo',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('phpinfo');
+      expect(m?.template).toBe('phpinfo');
+    }
+  });
+
+  it('does not over-match generic .php names as phpinfo', () => {
+    for (const p of ['/index.php', '/contact.php', '/information.php', '/login.php']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('matches /actuator/* for the generic Spring fallback', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });

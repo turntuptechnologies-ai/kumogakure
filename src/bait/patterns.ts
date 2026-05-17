@@ -60,6 +60,24 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'mcp',
     template: 'mcp',
   },
+  // phpinfo() enumeration: a curated allowlist of the basenames
+  // scanners spray, at any directory depth. Generic names like
+  // index.php / contact.php are deliberately excluded; wp-content
+  // and wp-includes .php stay webshell via the earlier patterns
+  // (first-match wins).
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-info|php|pinfo|pi|p|i|info|test|debug|server-status|server-info)\.php$/,
+    category: 'config-leak',
+    subcategory: 'phpinfo',
+    template: 'phpinfo',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*(?:phpinfo|php-info|info)$/,
+    category: 'config-leak',
+    subcategory: 'phpinfo',
+    template: 'phpinfo',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',

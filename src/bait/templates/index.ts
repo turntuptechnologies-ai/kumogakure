@@ -17,6 +17,7 @@ import { graphqlIntrospection } from './graphql-introspection.js';
 import { hnap1 } from './hnap1.js';
 import { joomlaLogin } from './joomla-login.js';
 import { mcp } from './mcp.js';
+import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
@@ -63,6 +64,7 @@ const templates: Record<string, TemplateFn> = {
   hnap1: hnap1,
   'boa-form-login': boaFormLogin,
   mcp: mcp,
+  phpinfo: phpinfo,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
