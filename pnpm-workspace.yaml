@@ -1,0 +1,15 @@
+# Supply-chain hardening. Refuse to install dependency versions until
+# they have been public for at least this many minutes, so a malicious
+# release has a window in which it is typically detected and yanked.
+#
+# This is the install-layer counterpart to the Dependabot `cooldown`
+# in .github/dependabot.yml: Dependabot cooldown only gates Dependabot
+# PRs, whereas this also covers manual `pnpm add`, lockfile refreshes,
+# and contributor machines. Frozen-lockfile installs (CI) are
+# unaffected because they replay already-pinned versions rather than
+# resolving new ones.
+#
+# 10080 minutes = 7 days, matching the smallest Dependabot cooldown
+# tier (patch / github-actions). Add minimumReleaseAgeExclude below if
+# a specific package ever needs to bypass this.
+minimumReleaseAge: 10080
