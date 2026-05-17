@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+type: software
+message: If you use this software, please cite it using the metadata from this file.
+title: turntuptechnologies-ai/kumogakure
+abstract: A serverless low-interaction web honeypot for Cloudflare Workers.
+authors:
+  - name: "Turnt Up Technologies, Inc."
+date-released: "2026-05-12"
+license: MIT
+repository-code: "https://github.com/turntuptechnologies-ai/kumogakure"
