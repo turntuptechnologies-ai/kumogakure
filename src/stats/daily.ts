@@ -1,6 +1,6 @@
 import type { Env } from '../types.js';
 
-const TOP_N = 10;
+const TOP_N = 20;
 const DAY_MS = 86_400_000;
 const DAY_SECONDS = 86_400;
 
