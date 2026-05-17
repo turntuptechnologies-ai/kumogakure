@@ -36,6 +36,20 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes common MCP mount paths to the mcp template', () => {
+    for (const p of ['/jsonrpc', '/sse', '/messages', '/api/mcp', '/mcp/v1', '/mcp/']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('mcp-recon');
+      expect(m?.subcategory).toBe('mcp');
+      expect(m?.template).toBe('mcp');
+    }
+  });
+
+  it('does not treat MCP lookalikes as mcp-recon', () => {
+    expect(findPatternBait('/mcpfoo')).toBeUndefined();
+    expect(findPatternBait('/jsonrpcx')).toBeUndefined();
+  });
+
   it('matches /actuator/* for the generic Spring fallback', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });

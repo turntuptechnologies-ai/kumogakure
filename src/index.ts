@@ -35,7 +35,7 @@ app.all('*', async (c) => {
     const signals = detectAcross(request, body);
 
     const template = getTemplate(templateName);
-    const baseResponse = template({ request, path, category, subcategory });
+    const baseResponse = template({ request, path, category, subcategory, body });
     const response = new Response(baseResponse.body, baseResponse);
 
     for (const [k, v] of Object.entries(fingerprintHeaders(category))) {

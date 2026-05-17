@@ -6,6 +6,7 @@ export type BaitCategory =
   | 'webshell'
   | 'api-recon'
   | 'iot-recon'
+  | 'mcp-recon'
   | 'unknown';
 
 export type SignalName =
@@ -30,6 +31,9 @@ export interface TemplateContext {
   path: string;
   category: BaitCategory;
   subcategory?: string;
+  /** Already-read request body (decoded text), passed through so
+   *  synchronous templates can branch on it (e.g. JSON-RPC method). */
+  body?: string;
 }
 
 export type TemplateFn = (ctx: TemplateContext) => Response;

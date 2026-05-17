@@ -8,6 +8,7 @@ const serverHeaderPool: Record<BaitCategory, string[]> = {
   webshell: ['Apache/2.4.41 (Ubuntu)'],
   'api-recon': ['nginx/1.18.0'],
   'iot-recon': ['lighttpd/1.4.39', 'Boa/0.94.14rc21'],
+  'mcp-recon': ['uvicorn', 'nginx/1.25.3'],
   unknown: ['nginx/1.18.0'],
 };
 

@@ -16,6 +16,7 @@ import { gitlabSignIn } from './gitlab-sign-in.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
 import { hnap1 } from './hnap1.js';
 import { joomlaLogin } from './joomla-login.js';
+import { mcp } from './mcp.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
@@ -61,6 +62,7 @@ const templates: Record<string, TemplateFn> = {
   'api-health': apiHealth,
   hnap1: hnap1,
   'boa-form-login': boaFormLogin,
+  mcp: mcp,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

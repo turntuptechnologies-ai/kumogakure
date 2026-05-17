@@ -131,6 +131,9 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'generic-router',
     template: 'boa-form-login',
   },
+
+  // mcp-recon
+  { path: '/mcp', category: 'mcp-recon', subcategory: 'mcp', template: 'mcp' },
 ];
 
 const explicitByPath = new Map(explicitBait.map((entry) => [entry.path, entry]));
