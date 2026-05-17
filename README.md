@@ -74,7 +74,8 @@ src/
 ├── signals/            Exploit signature detection
 ├── storage/            D1 and R2 adapters
 ├── fingerprint/        Anti-fingerprinting headers
-└── gc/                 Cron-triggered cleanup
+├── stats/              Cron-triggered daily aggregation (daily_stats)
+└── gc/                 Cron-triggered retention cleanup
 docs/                   Deployment and policy documentation
 migrations/             D1 schema migrations
 tests/                  Vitest unit and integration tests
