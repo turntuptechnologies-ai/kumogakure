@@ -5,6 +5,18 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Supply-chain hardening: don't adopt freshly published versions
+    # until they've survived a window in which malicious releases are
+    # typically detected and yanked. Security updates are exempt
+    # (cooldown applies to version updates only) so known-CVE fixes
+    # still land promptly.
+    cooldown:
+      default-days: 7
+      semver-major-days: 30
+      semver-minor-days: 14
+      semver-patch-days: 7
+      include:
+        - "*"
     groups:
       npm:
         patterns:
@@ -14,6 +26,12 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # github-actions does not support the semver-*-days keys, so a
+    # flat cooldown applies to all action bumps.
+    cooldown:
+      default-days: 7
+      include:
+        - "*"
     groups:
       actions:
         patterns:
