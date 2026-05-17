@@ -7,6 +7,7 @@ import { runDailyGc } from './gc/cron.js';
 import { uuidv7 } from './id.js';
 import { readRequestBody, resolveBodyReadLimit } from './request-body.js';
 import { detectAcross } from './signals/detector.js';
+import { runDailyStats } from './stats/daily.js';
 import { insertRequest } from './storage/d1.js';
 import { buildR2Key, storePayload } from './storage/r2.js';
 import type { BaitCategory, Env, RequestRecord } from './types.js';
@@ -136,7 +137,11 @@ app.all('*', async (c) => {
 
 export default {
   fetch: app.fetch,
-  scheduled: async (_event, env, ctx) => {
+  scheduled: async (event, env, ctx) => {
+    // Independent waitUntils: a stats failure must not block retention
+    // GC (and vice-versa). Their data ranges do not overlap — stats
+    // aggregates yesterday, GC deletes rows older than RETENTION_DAYS.
+    ctx.waitUntil(runDailyStats(env, event.scheduledTime));
     ctx.waitUntil(runDailyGc(env));
   },
 } satisfies ExportedHandler<Env>;
