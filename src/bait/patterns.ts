@@ -25,6 +25,24 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'dotenv-variant',
     template: 'fake-env',
   },
+  // Scanners spray `.env` across many directories (/api/.env,
+  // /backend/.env, ...), not just the web root. The final path segment
+  // must be exactly `.env` or `.env.<suffix>` so paths like /foo.env
+  // or /environment are not misclassified. Root /.env stays on the
+  // explicit catalog entry (checked first); root /.env.<x> stays on the
+  // pattern above (earlier, first-match wins) — both unchanged.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.env$/,
+    category: 'config-leak',
+    subcategory: 'dotenv',
+    template: 'fake-env',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.env\.[^/]+$/,
+    category: 'config-leak',
+    subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
