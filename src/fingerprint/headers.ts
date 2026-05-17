@@ -11,9 +11,21 @@ const serverHeaderPool: Record<BaitCategory, string[]> = {
   unknown: ['nginx/1.18.0'],
 };
 
+function unbiasedIndex(n: number): number {
+  // Rejection sampling: discard the non-uniform tail of the 2^32 range
+  // so every index is equally likely (js/biased-cryptographic-random).
+  const limit = Math.floor(0x1_0000_0000 / n) * n;
+  const buf = new Uint32Array(1);
+  let x: number;
+  do {
+    x = crypto.getRandomValues(buf)[0];
+  } while (x >= limit);
+  return x % n;
+}
+
 export function fingerprintHeaders(category: BaitCategory): Record<string, string> {
   const pool = serverHeaderPool[category];
-  const idx = crypto.getRandomValues(new Uint32Array(1))[0] % pool.length;
+  const idx = unbiasedIndex(pool.length);
   const server = pool[idx] ?? 'nginx/1.18.0';
   const headers: Record<string, string> = { Server: server };
   if (category === 'cms-auth' || category === 'config-leak' || category === 'webshell') {
