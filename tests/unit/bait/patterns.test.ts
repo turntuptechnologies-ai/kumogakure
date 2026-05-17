@@ -15,6 +15,27 @@ describe('bait patterns', () => {
     expect(findPatternBait('/.env.production')?.template).toBe('fake-env');
   });
 
+  it('matches .env in any subdirectory as dotenv', () => {
+    for (const p of ['/api/.env', '/backend/.env', '/a/b/c/.env']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('dotenv');
+      expect(m?.template).toBe('fake-env');
+    }
+  });
+
+  it('matches subdirectory .env.<suffix> as dotenv-variant', () => {
+    const m = findPatternBait('/api/.env.production');
+    expect(m?.subcategory).toBe('dotenv-variant');
+    expect(m?.template).toBe('fake-env');
+  });
+
+  it('does not misclassify lookalikes as dotenv', () => {
+    for (const p of ['/foo.env', '/environment', '/.environment', '/api/env']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('matches /actuator/* for the generic Spring fallback', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });
