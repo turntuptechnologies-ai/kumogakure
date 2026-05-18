@@ -130,6 +130,27 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes package-registry credential files at any depth', () => {
+    const cases: Array<[string, string]> = [
+      ['/.npmrc', 'fake-npmrc'],
+      ['/root/.npmrc', 'fake-npmrc'],
+      ['/.pypirc', 'fake-pypirc'],
+      ['/home/u/.pypirc', 'fake-pypirc'],
+    ];
+    for (const [p, tpl] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('package-registry-credentials');
+      expect(m?.template).toBe(tpl);
+    }
+  });
+
+  it('does not over-match registry credential lookalikes', () => {
+    for (const p of ['/foo.npmrc', '/.npmrcx', '/npmrc', '/.pypircx']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('does not over-match git dotfile lookalikes and leaves .git/ intact', () => {
     expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
     expect(findPatternBait('/gitconfig')).toBeUndefined();

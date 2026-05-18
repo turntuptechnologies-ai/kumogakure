@@ -14,6 +14,8 @@ import { fakeGitCredentials } from './fake-git-credentials.js';
 import { fakeGitHead } from './fake-git-head.js';
 import { fakeGitconfig } from './fake-gitconfig.js';
 import { fakeNetrc } from './fake-netrc.js';
+import { fakeNpmrc } from './fake-npmrc.js';
+import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
 import { fakeWpConfig } from './fake-wp-config.js';
@@ -79,6 +81,8 @@ const templates: Record<string, TemplateFn> = {
   'fake-s3cfg': fakeS3cfg,
   'fake-boto': fakeBoto,
   'fake-netrc': fakeNetrc,
+  'fake-npmrc': fakeNpmrc,
+  'fake-pypirc': fakePypirc,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

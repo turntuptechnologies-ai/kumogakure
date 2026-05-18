@@ -133,6 +133,22 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'netrc',
     template: 'fake-netrc',
   },
+  // Package-registry publish credentials -> supply-chain. .npmrc
+  // carries the npm _authToken; .pypirc the PyPI API token. One shared
+  // subcategory (the supply-chain token-theft signal); any depth,
+  // final segment exact.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.npmrc$/,
+    category: 'config-leak',
+    subcategory: 'package-registry-credentials',
+    template: 'fake-npmrc',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.pypirc$/,
+    category: 'config-leak',
+    subcategory: 'package-registry-credentials',
+    template: 'fake-pypirc',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
