@@ -71,6 +71,30 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes git home-dotfiles at any depth, splitting credentials', () => {
+    for (const p of ['/root/.gitconfig', '/.gitconfig', '/home/u/.gitconfig']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('git');
+      expect(m?.template).toBe('fake-gitconfig');
+    }
+    for (const p of ['/root/.git-credentials', '/.git-credentials', '/var/www/.git-credentials']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('git-credentials');
+      expect(m?.template).toBe('fake-git-credentials');
+    }
+  });
+
+  it('does not over-match git dotfile lookalikes and leaves .git/ intact', () => {
+    expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
+    expect(findPatternBait('/gitconfig')).toBeUndefined();
+    expect(findPatternBait('/.gitconfigx')).toBeUndefined();
+    // The existing .git/ repo family is unchanged (different filename).
+    expect(findPatternBait('/.git/config')?.subcategory).toBe('git');
+    expect(findPatternBait('/.git/config')?.template).toBe('not-found');
+  });
+
   it('does not over-match generic .php names as phpinfo', () => {
     for (const p of ['/index.php', '/contact.php', '/information.php', '/login.php']) {
       expect(findPatternBait(p)).toBeUndefined();

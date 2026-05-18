@@ -78,6 +78,23 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'phpinfo',
     template: 'phpinfo',
   },
+  // Git home-dir dotfiles at any depth (/root/, /home/<user>/, web
+  // root). Distinct from the .git/ repo family below; final segment
+  // must be exactly the dotfile name. .git-credentials is split to its
+  // own subcategory — plaintext credential theft is a higher-severity
+  // signal worth isolating in the daily_stats rollups.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.gitconfig$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-gitconfig',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.git-credentials$/,
+    category: 'config-leak',
+    subcategory: 'git-credentials',
+    template: 'fake-git-credentials',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
