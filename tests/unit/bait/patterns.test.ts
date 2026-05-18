@@ -86,6 +86,35 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes cloud credential dotfiles at any depth, config split out', () => {
+    const credCases: Array<[string, string]> = [
+      ['/root/.aws/credentials', 'fake-aws-credentials'],
+      ['/.aws/credentials', 'fake-aws-credentials'],
+      ['/root/.s3cfg', 'fake-s3cfg'],
+      ['/.s3cfg', 'fake-s3cfg'],
+      ['/root/.boto', 'fake-boto'],
+      ['/.boto', 'fake-boto'],
+    ];
+    for (const [p, tpl] of credCases) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('cloud-credentials');
+      expect(m?.template).toBe(tpl);
+    }
+    for (const p of ['/root/.aws/config', '/.aws/config', '/home/u/.aws/config']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('aws');
+      expect(m?.template).toBe('fake-aws-config');
+    }
+  });
+
+  it('does not over-match cloud credential lookalikes', () => {
+    for (const p of ['/foo.boto', '/.s3cfgx', '/.aws/credentialsx', '/.aws', '/aws/config']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('does not over-match git dotfile lookalikes and leaves .git/ intact', () => {
     expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
     expect(findPatternBait('/gitconfig')).toBeUndefined();
