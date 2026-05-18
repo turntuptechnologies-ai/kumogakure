@@ -95,6 +95,35 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'git-credentials',
     template: 'fake-git-credentials',
   },
+  // Cloud credential/config dotfiles at any depth. Same severity split
+  // as the git family: plaintext credential stores
+  // (.aws/credentials, .s3cfg, .boto) go to `cloud-credentials`;
+  // .aws/config is structural so it stays `aws`. The old exact
+  // /.aws/credentials catalog entry was removed in favour of these.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.aws\/credentials$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-aws-credentials',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.s3cfg$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-s3cfg',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.boto$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-boto',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.aws\/config$/,
+    category: 'config-leak',
+    subcategory: 'aws',
+    template: 'fake-aws-config',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',

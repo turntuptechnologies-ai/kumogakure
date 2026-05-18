@@ -44,12 +44,6 @@ export const explicitBait: BaitEntry[] = [
     template: 'fake-wp-config',
   },
   {
-    path: '/.aws/credentials',
-    category: 'config-leak',
-    subcategory: 'aws',
-    template: 'fake-aws-credentials',
-  },
-  {
     path: '/server-status',
     category: 'config-leak',
     subcategory: 'apache',
