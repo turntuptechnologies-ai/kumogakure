@@ -8,7 +8,9 @@ import { exchangeOwaLogin } from './exchange-owa-login.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeEnv } from './fake-env.js';
 import { fakeGitConfig } from './fake-git-config.js';
+import { fakeGitCredentials } from './fake-git-credentials.js';
 import { fakeGitHead } from './fake-git-head.js';
+import { fakeGitconfig } from './fake-gitconfig.js';
 import { fakeServerStatus } from './fake-server-status.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
@@ -67,6 +69,8 @@ const templates: Record<string, TemplateFn> = {
   mcp: mcp,
   phpinfo: phpinfo,
   'gravity-smtp-system-report': gravitySmtpSystemReport,
+  'fake-gitconfig': fakeGitconfig,
+  'fake-git-credentials': fakeGitCredentials,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
