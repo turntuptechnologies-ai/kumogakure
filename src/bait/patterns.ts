@@ -124,6 +124,15 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'aws',
     template: 'fake-aws-config',
   },
+  // .netrc / _netrc (Windows): plaintext auto-login store for curl /
+  // wget / git-over-HTTPS / ftp. Same credential-theft class as the
+  // git/cloud stores; any depth, final segment exact.
+  {
+    pattern: /^\/(?:[^/]+\/)*[._]netrc$/,
+    category: 'config-leak',
+    subcategory: 'netrc',
+    template: 'fake-netrc',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
