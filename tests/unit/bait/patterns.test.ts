@@ -115,6 +115,21 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes .netrc / _netrc at any depth to the netrc decoy', () => {
+    for (const p of ['/.netrc', '/root/.netrc', '/home/u/_netrc', '/var/www/.netrc']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('netrc');
+      expect(m?.template).toBe('fake-netrc');
+    }
+  });
+
+  it('does not over-match netrc lookalikes', () => {
+    for (const p of ['/foo.netrc', '/.netrcx', '/netrc', '/.netr']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('does not over-match git dotfile lookalikes and leaves .git/ intact', () => {
     expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
     expect(findPatternBait('/gitconfig')).toBeUndefined();

@@ -13,6 +13,7 @@ import { fakeGitConfig } from './fake-git-config.js';
 import { fakeGitCredentials } from './fake-git-credentials.js';
 import { fakeGitHead } from './fake-git-head.js';
 import { fakeGitconfig } from './fake-gitconfig.js';
+import { fakeNetrc } from './fake-netrc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
 import { fakeWpConfig } from './fake-wp-config.js';
@@ -77,6 +78,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-aws-config': fakeAwsConfig,
   'fake-s3cfg': fakeS3cfg,
   'fake-boto': fakeBoto,
+  'fake-netrc': fakeNetrc,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
