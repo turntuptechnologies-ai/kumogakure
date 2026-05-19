@@ -151,6 +151,35 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes git repo-metadata to config-leak/git decoys', () => {
+    const cases: Array<[string, string]> = [
+      ['/.git/', 'fake-git-dir-listing'],
+      ['/.git', 'fake-git-dir-listing'],
+      ['/sub/.git/', 'fake-git-dir-listing'],
+      ['/.gitignore', 'fake-gitignore'],
+      ['/app/.gitignore', 'fake-gitignore'],
+      ['/.gitattributes', 'fake-gitattributes'],
+      ['/.gitmodules', 'fake-gitmodules'],
+    ];
+    for (const [p, tpl] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('git');
+      expect(m?.template).toBe(tpl);
+    }
+  });
+
+  it('keeps the existing /.git/<file> behaviour and rejects lookalikes', () => {
+    // Anchored dir pattern must NOT swallow repo-content paths.
+    const cfg = findPatternBait('/.git/config');
+    expect(cfg?.subcategory).toBe('git');
+    expect(cfg?.template).toBe('not-found');
+    expect(findPatternBait('/.git/refs/heads/main')?.template).toBe('not-found');
+    for (const p of ['/.gitignorex', '/foo.gitmodules', '/gitignore', '/.gitfoo']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('does not over-match git dotfile lookalikes and leaves .git/ intact', () => {
     expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
     expect(findPatternBait('/gitconfig')).toBeUndefined();

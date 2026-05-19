@@ -161,6 +161,34 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'named-shell',
     template: 'not-found',
   },
+  // Git repo metadata (distinct from credentials). The bare .git/
+  // directory index leads on to the existing fake .git/config &
+  // .git/HEAD. These are anchored so they do not shadow the
+  // /.git/<file> pattern below (regex-verified).
+  {
+    pattern: /^\/(?:[^/]+\/)*\.git\/?$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-git-dir-listing',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.gitignore$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-gitignore',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.gitattributes$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-gitattributes',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.gitmodules$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-gitmodules',
+  },
   {
     pattern: /^\/\.git\/.+/,
     category: 'config-leak',
