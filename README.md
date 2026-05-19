@@ -108,6 +108,7 @@ After `pnpm install`, the following scripts are available:
 | `pnpm migrations:apply` | Apply the D1 migrations against the remote database |
 | `pnpm run reset:data` | Wipe all captured data (R2 objects + D1 rows). Local by default; `-- --remote` for deployed data. See [`docs/DEPLOY.md`](docs/DEPLOY.md) |
 | `pnpm run gaps` | List unmatched probe paths (`category=unknown`) to find bait gaps. Deployed data by default; `-- --hours N`, `-- --limit N`, `-- --local`, `-- --dry-run` |
+| `pnpm run stats` | Overall traffic trend report (categories/subcategories/paths/signals/countries/per-day). Deployed data by default; `-- --days N`, `-- --top N`, `-- --local`, `-- --dry-run` |
 
 ### Adding a new bait path
 
