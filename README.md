@@ -109,6 +109,7 @@ After `pnpm install`, the following scripts are available:
 | `pnpm run reset:data` | Wipe all captured data (R2 objects + D1 rows). Local by default; `-- --remote` for deployed data. See [`docs/DEPLOY.md`](docs/DEPLOY.md) |
 | `pnpm run gaps` | List unmatched probe paths (`category=unknown`) to find bait gaps. Deployed data by default; `-- --hours N`, `-- --limit N`, `-- --local`, `-- --dry-run` |
 | `pnpm run stats` | Overall traffic trend report (categories/subcategories/paths/signals/countries/per-day). Deployed data by default; `-- --days N`, `-- --top N`, `-- --local`, `-- --dry-run` |
+| `pnpm run quota` | Estimate Cloudflare Free Tier usage (Workers req/day, D1 writes/day & storage, R2 Class A/month). Estimates from own data; deployed by default; `-- --days N`, `-- --local`, `-- --dry-run` |
 
 ### Adding a new bait path
 

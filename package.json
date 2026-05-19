@@ -17,7 +17,8 @@
     "migrations:apply": "wrangler d1 migrations apply kumogakure",
     "reset:data": "bash scripts/reset-data.sh",
     "gaps": "bash scripts/find-gaps.sh",
-    "stats": "bash scripts/stats.sh"
+    "stats": "bash scripts/stats.sh",
+    "quota": "bash scripts/quota.sh"
   },
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
