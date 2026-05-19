@@ -17,6 +17,8 @@
 #
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
 DB_NAME="kumogakure"
 
 TARGET="remote"   # read-only; trends are only meaningful against prod
@@ -76,7 +78,7 @@ pretty() { command -v column >/dev/null 2>&1 && column -t -s "$(printf '\t')" ||
 run() { # $1=title  $2=sql  $3=jq selector key  $4=jq header(array)  $5=jq row(array)
   echo
   echo "== $1 (last ${DAYS}d) =="
-  pnpm exec wrangler d1 execute "$DB_NAME" "$ENV_FLAG" --json --command "$2" \
+  d1_json "$DB_NAME" "$ENV_FLAG" "$2" \
     | jq -r --arg k "$3" '
         [.. | objects | select(has($k))] as $r
         | ('"$4"'), ($r[] | '"$5"') | @tsv' \

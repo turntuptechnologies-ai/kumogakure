@@ -18,6 +18,8 @@
 #
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
 DB_NAME="kumogakure"
 
 TARGET="remote"   # read-only; gaps are only meaningful against prod
@@ -70,7 +72,7 @@ fi
 
 echo "Unmatched probes (category=unknown, path!=/, last ${HOURS}h, ${TARGET}):" >&2
 
-pnpm exec wrangler d1 execute "$DB_NAME" "$ENV_FLAG" --json --command "$SQL" \
+d1_json "$DB_NAME" "$ENV_FLAG" "$SQL" \
   | jq -r '
       [.. | objects | select(has("path") and has("hits"))] as $rows
       | (["HITS","SRCS","LAST_SEEN_UTC","METHOD","PATH"]),

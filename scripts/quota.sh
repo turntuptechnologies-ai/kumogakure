@@ -24,6 +24,8 @@
 #
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
+
 DB_NAME="kumogakure"
 
 LIMIT_WORKERS_REQ_DAY=100000
@@ -75,11 +77,11 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-COUNTS_JSON=$(pnpm exec wrangler d1 execute "$DB_NAME" "$ENV_FLAG" --json --command "$SQL")
+COUNTS_JSON=$(d1_json "$DB_NAME" "$ENV_FLAG" "$SQL")
 REQ_DAY=$(printf '%s' "$COUNTS_JSON" | jq -r 'first(.. | objects | select(has("req_day")) | .req_day)')
 R2_A_MONTH=$(printf '%s' "$COUNTS_JSON" | jq -r 'first(.. | objects | select(has("r2_class_a_month")) | .r2_class_a_month)')
 
-D1_INFO_JSON=$(pnpm exec wrangler d1 info "$DB_NAME" "$ENV_FLAG" --json 2>/dev/null || echo '{}')
+D1_INFO_JSON=$(d1_info_json "$DB_NAME" "$ENV_FLAG")
 D1_BYTES=$(printf '%s' "$D1_INFO_JSON" | jq -r 'first(.. | objects | (.file_size // .database_size) // empty) // 0')
 [ -z "$D1_BYTES" ] && D1_BYTES=0
 
