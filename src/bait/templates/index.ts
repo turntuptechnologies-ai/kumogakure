@@ -11,8 +11,12 @@ import { fakeBoto } from './fake-boto.js';
 import { fakeEnv } from './fake-env.js';
 import { fakeGitConfig } from './fake-git-config.js';
 import { fakeGitCredentials } from './fake-git-credentials.js';
+import { fakeGitDirListing } from './fake-git-dir-listing.js';
 import { fakeGitHead } from './fake-git-head.js';
+import { fakeGitattributes } from './fake-gitattributes.js';
 import { fakeGitconfig } from './fake-gitconfig.js';
+import { fakeGitignore } from './fake-gitignore.js';
+import { fakeGitmodules } from './fake-gitmodules.js';
 import { fakeNetrc } from './fake-netrc.js';
 import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePypirc } from './fake-pypirc.js';
@@ -83,6 +87,10 @@ const templates: Record<string, TemplateFn> = {
   'fake-netrc': fakeNetrc,
   'fake-npmrc': fakeNpmrc,
   'fake-pypirc': fakePypirc,
+  'fake-git-dir-listing': fakeGitDirListing,
+  'fake-gitignore': fakeGitignore,
+  'fake-gitattributes': fakeGitattributes,
+  'fake-gitmodules': fakeGitmodules,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
