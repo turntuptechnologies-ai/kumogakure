@@ -13,6 +13,17 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wp-includes',
     template: 'not-found',
   },
+  // WordPress installation fingerprint: wp-includes/wlwmanifest.xml
+  // (the WordPress-generated Windows Live Writer manifest) at any
+  // depth — scanners spray subdirectory prefixes to find WP installs.
+  // Different ending from the wp-includes/*.php webshell pattern; no
+  // overlap (regex-verified).
+  {
+    pattern: /^\/(?:[^/]+\/)*wp-includes\/wlwmanifest\.xml$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'fake-wlwmanifest',
+  },
   {
     pattern: /^\/.*\.(bak|swp|old|orig|save|backup)$/,
     category: 'config-leak',
