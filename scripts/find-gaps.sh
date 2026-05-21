@@ -70,12 +70,13 @@ ENV_FLAG="--remote"
 if [ "$WITH_BODY" = "true" ]; then
   # Bodied-unknown subset: a bodied request to '/' is exactly interesting
   # (e.g., Next.js Server Action probes), so the path='/' exclusion is
-  # dropped. MAX(r2_key) selects one representative payload per group.
-  SQL="SELECT method, path, COUNT(*) AS hits, COUNT(DISTINCT ip) AS srcs, MAX(ts) AS last_ts, MAX(r2_key) AS r2_key \
+  # dropped. ONE ROW PER REQUEST — distinct bodies on the same path
+  # must each be shown (no GROUP BY), so every payload variant is
+  # inspectable.
+  SQL="SELECT ts, method, path, r2_key \
 FROM requests \
 WHERE category = 'unknown' AND r2_key IS NOT NULL AND ts >= ${CUTOFF} \
-GROUP BY method, path \
-ORDER BY hits DESC, last_ts DESC \
+ORDER BY ts DESC \
 LIMIT ${LIMIT};"
 else
   SQL="SELECT method, path, COUNT(*) AS hits, COUNT(DISTINCT ip) AS srcs, MAX(ts) AS last_ts \
@@ -109,15 +110,7 @@ fi
 
 RESULT=$(d1_json "$DB_NAME" "$ENV_FLAG" "$SQL")
 
-if [ "$WITH_BODY" = "true" ]; then
-  printf '%s' "$RESULT" \
-    | jq -r '
-        [.. | objects | select(has("path") and has("hits"))] as $rows
-        | (["HITS","SRCS","LAST_SEEN_UTC","METHOD","PATH","R2_KEY"]),
-          ($rows[] | [.hits, .srcs, (.last_ts | tonumber | todate), .method, .path, .r2_key])
-        | @tsv' \
-    | { command -v column >/dev/null 2>&1 && column -t -s "$(printf '\t')" || cat; }
-else
+if [ "$WITH_BODY" = "false" ]; then
   printf '%s' "$RESULT" \
     | jq -r '
         [.. | objects | select(has("path") and has("hits"))] as $rows
@@ -128,32 +121,71 @@ else
 fi
 
 if [ "$WITH_BODY" = "true" ]; then
-  # Iterate rows, fetch one representative R2 payload per group, inline.
+  # Fetch each R2 payload once, save to a per-row file, then render both
+  # the table (with a single-line BODY preview to the right of R2_KEY)
+  # and the per-entry blocks below (full body up to --max-body).
+  WORK=$(mktemp -d)
+  trap 'rm -rf "$WORK"' EXIT
+  PREVIEW_LEN=200   # single-line preview width in the BODY column
+
   printf '%s' "$RESULT" \
     | jq -r '
         [.. | objects | select(has("r2_key") and (.r2_key != null))]
         | to_entries[]
-        | "\(.key+1)\t\(.value.method)\t\(.value.path)\t\(.value.r2_key)"' \
-    | while IFS=$'\t' read -r idx method path key; do
-        echo
-        echo "─── #${idx}  method=${method}  path=${path} ───"
-        echo "r2_key: ${key}"
-        tmp=$(mktemp)
-        if pnpm exec wrangler r2 object get "${BUCKET}/${key}" "$ENV_FLAG" --file "$tmp" >/dev/null 2>&1; then
-          body=$(gunzip -c "$tmp" 2>/dev/null || true)
-          if [ -n "$body" ]; then
-            if [ "${#body}" -gt "$MAX_BODY" ]; then
-              printf '%s' "${body:0:$MAX_BODY}"
-              printf '\n... [truncated, %d more chars]\n' "$(( ${#body} - MAX_BODY ))"
-            else
-              printf '%s\n' "$body"
-            fi
-          else
-            echo "[r2 fetch returned empty / not gzip]"
-          fi
-        else
-          echo "[r2 fetch failed]"
-        fi
-        rm -f "$tmp"
-      done
+        | "\(.key+1)\t\(.value.ts)\t\(.value.method)\t\(.value.path)\t\(.value.r2_key)"' \
+      > "$WORK/rows.tsv"
+
+  while IFS=$'\t' read -r idx ts method path key; do
+    [ -z "$idx" ] && continue
+    obj="$WORK/$idx.obj"
+    out="$WORK/$idx.body"
+    : > "$out"
+    if pnpm exec wrangler r2 object get "${BUCKET}/${key}" "$ENV_FLAG" --file "$obj" >/dev/null 2>&1; then
+      # Some wrangler versions auto-decode Content-Encoding: gzip on
+      # --file write; others pass raw bytes. Try gunzip first, then
+      # fall back to the file as-is when it is non-empty.
+      if gunzip -c "$obj" > "$out" 2>/dev/null && [ -s "$out" ]; then
+        :
+      elif [ -s "$obj" ]; then
+        cp "$obj" "$out"
+      fi
+    fi
+    printf '%s\t%s\t%s\t%s\t%s\n' "$idx" "$ts" "$method" "$path" "$key" >> "$WORK/meta.tsv"
+  done < "$WORK/rows.tsv"
+
+  # Table with BODY preview to the right of R2_KEY.
+  {
+    printf 'TS_UTC\tMETHOD\tPATH\tR2_KEY\tBODY\n'
+    while IFS=$'\t' read -r idx ts method path key; do
+      ts_iso=$(date -u -d "@${ts}" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "${ts}")
+      if [ -s "$WORK/$idx.body" ]; then
+        # Single-line preview: replace newlines/tabs with spaces, truncate.
+        preview=$(tr '\r\n\t' '   ' < "$WORK/$idx.body" | cut -c"1-${PREVIEW_LEN}")
+        full_len=$(wc -c < "$WORK/$idx.body" | tr -d ' ')
+        if [ "$full_len" -gt "$PREVIEW_LEN" ]; then preview="${preview}…"; fi
+      else
+        preview="[r2 fetch returned empty or failed]"
+      fi
+      printf '%s\t%s\t%s\t%s\t%s\n' "$ts_iso" "$method" "$path" "$key" "$preview"
+    done < "$WORK/meta.tsv"
+  } | { command -v column >/dev/null 2>&1 && column -t -s "$(printf '\t')" 2>/dev/null || cat; }
+
+  # Per-entry blocks: full body (up to --max-body) preserving newlines.
+  while IFS=$'\t' read -r idx ts method path key; do
+    ts_iso=$(date -u -d "@${ts}" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "${ts}")
+    echo
+    echo "─── #${idx}  ts=${ts_iso}  method=${method}  path=${path} ───"
+    echo "r2_key: ${key}"
+    if [ -s "$WORK/$idx.body" ]; then
+      body=$(cat "$WORK/$idx.body")
+      if [ "${#body}" -gt "$MAX_BODY" ]; then
+        printf '%s' "${body:0:$MAX_BODY}"
+        printf '\n... [truncated, %d more chars]\n' "$(( ${#body} - MAX_BODY ))"
+      else
+        printf '%s\n' "$body"
+      fi
+    else
+      echo "[r2 fetch returned empty or failed]"
+    fi
+  done < "$WORK/meta.tsv"
 fi
