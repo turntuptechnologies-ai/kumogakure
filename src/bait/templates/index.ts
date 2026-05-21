@@ -22,6 +22,7 @@ import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
+import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
@@ -91,6 +92,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitignore': fakeGitignore,
   'fake-gitattributes': fakeGitattributes,
   'fake-gitmodules': fakeGitmodules,
+  'fake-wlwmanifest': fakeWlwmanifest,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

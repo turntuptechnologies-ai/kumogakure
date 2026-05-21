@@ -169,6 +169,28 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes wp-includes/wlwmanifest.xml at any depth to the WordPress fingerprint decoy', () => {
+    for (const p of [
+      '/wp-includes/wlwmanifest.xml',
+      '/blog/wp-includes/wlwmanifest.xml',
+      '/wp/wp-includes/wlwmanifest.xml',
+      '/2018/wp-includes/wlwmanifest.xml',
+      '/sito/wp-includes/wlwmanifest.xml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cms-auth');
+      expect(m?.subcategory).toBe('wordpress-fingerprint');
+      expect(m?.template).toBe('fake-wlwmanifest');
+    }
+  });
+
+  it('does not over-match wlwmanifest lookalikes; existing wp patterns intact', () => {
+    expect(findPatternBait('/wlwmanifest.xml')).toBeUndefined();
+    expect(findPatternBait('/wp-includes/foo.xml')).toBeUndefined();
+    expect(findPatternBait('/wp-includes/wlwmanifest.xml.bak')?.subcategory).toBe('backup');
+    expect(findPatternBait('/wp-includes/foo.php')?.subcategory).toBe('wp-includes');
+  });
+
   it('keeps the existing /.git/<file> behaviour and rejects lookalikes', () => {
     // Anchored dir pattern must NOT swallow repo-content paths.
     const cfg = findPatternBait('/.git/config');
