@@ -41,4 +41,32 @@ describe('Worker routing', () => {
     });
     expect(response.status).toBe(200);
   });
+
+  // Regression guard for the wiring added in #71: index.ts must pass
+  // the already-read request body into TemplateContext, otherwise the
+  // mcp / gravity-smtp templates have nothing to branch on. The mcp
+  // template parses JSON-RPC out of ctx.body — if body is missing it
+  // would 400 instead of returning a result. Unit tests construct ctx
+  // with body directly, so this end-to-end path is only covered here.
+  it('propagates the POST body to ctx.body (mcp decoy returns serverInfo for initialize)', async () => {
+    const initialize = JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: { protocolVersion: '2025-03-26', clientInfo: { name: 'test' }, capabilities: {} },
+    });
+    const response = await SELF.fetch('http://example.test/mcp', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: initialize,
+    });
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as {
+      id: number;
+      result: { serverInfo: { name: string }; protocolVersion: string };
+    };
+    expect(json.id).toBe(1);
+    expect(json.result.serverInfo.name).toBe('ops-mcp-gateway');
+    expect(json.result.protocolVersion).toBe('2025-03-26');
+  });
 });

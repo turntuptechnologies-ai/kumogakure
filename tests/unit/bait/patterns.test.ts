@@ -232,4 +232,24 @@ describe('bait patterns', () => {
   it('lists at least the documented number of patterns', () => {
     expect(patternBait.length).toBeGreaterThanOrEqual(10);
   });
+
+  // Completeness guard: every long-standing static pattern is asserted
+  // with its full (category, subcategory, template) triplet, so a
+  // refactor of one row cannot silently change classification.
+  it('routes the pre-existing static patterns to their declared classification', () => {
+    const cases: Array<[string, string, string, string]> = [
+      ['/wp-content/uploads/x.php', 'webshell', 'wp-content', 'not-found'],
+      ['/wp-includes/foo.php', 'webshell', 'wp-includes', 'not-found'],
+      ['/cgi-bin/test.cgi', 'cve-recon', 'cgi', 'not-found'],
+      ['/admin/shell.php', 'webshell', 'named-shell', 'not-found'],
+      ['/_search/all', 'cve-recon', 'elasticsearch', 'not-found'],
+      ['/console/login', 'cve-recon', 'weblogic', 'not-found'],
+    ];
+    for (const [p, cat, sub, tpl] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe(cat);
+      expect(m?.subcategory).toBe(sub);
+      expect(m?.template).toBe(tpl);
+    }
+  });
 });

@@ -92,6 +92,24 @@ worker-configuration.d.ts  Generated runtime types (committed; regenerate with `
   tiers, canary marker policy). Required reading before contributing a new
   template.
 
+## Supply chain hardening
+
+To reduce the risk of compromised dependency releases, the project
+intentionally defers freshly published versions at two layers:
+
+- **Dependabot version updates** ([`.github/dependabot.yml`](.github/dependabot.yml))
+  use `cooldown` — npm `major 30d / minor 14d / patch 7d`, github-actions
+  flat `7d`. Routine bump PRs are intentionally late.
+- **pnpm install layer** ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
+  sets `minimumReleaseAge: 10080` (7 days), so manual `pnpm add` and
+  lockfile refreshes refuse versions younger than that.
+
+Both apply only to *version* updates; Dependabot **security updates**
+for known CVEs are exempt and still land promptly. CodeQL default
+setup runs the `security-extended` query suite; Dependabot security
+updates and private vulnerability reporting are enabled at the
+repository level.
+
 ## Development
 
 After `pnpm install`, the following scripts are available:
