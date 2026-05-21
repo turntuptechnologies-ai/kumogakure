@@ -159,10 +159,20 @@ if [ "$WITH_BODY" = "true" ]; then
     while IFS=$'\t' read -r idx ts method path key; do
       ts_iso=$(date -u -d "@${ts}" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "${ts}")
       if [ -s "$WORK/$idx.body" ]; then
-        # Single-line preview: replace newlines/tabs with spaces, truncate.
-        preview=$(tr '\r\n\t' '   ' < "$WORK/$idx.body" | cut -c"1-${PREVIEW_LEN}")
-        full_len=$(wc -c < "$WORK/$idx.body" | tr -d ' ')
-        if [ "$full_len" -gt "$PREVIEW_LEN" ]; then preview="${preview}…"; fi
+        # Prefer the bundle's `.body` field (the actual request body) over
+        # the full {headers, body} JSON, which would otherwise consume the
+        # preview width with header metadata. Falls back to the raw file
+        # contents if the bundle is unparseable or has no `body` key. The
+        # per-entry block below still shows the full bundle, so any
+        # attack signal carried in headers remains inspectable there.
+        if jq -e 'type == "object" and has("body")' < "$WORK/$idx.body" >/dev/null 2>&1; then
+          src=$(jq -r '.body // ""' < "$WORK/$idx.body")
+        else
+          src=$(cat "$WORK/$idx.body")
+        fi
+        preview=$(printf '%s' "$src" | tr '\r\n\t' '   ' | cut -c"1-${PREVIEW_LEN}")
+        if [ "${#src}" -gt "$PREVIEW_LEN" ]; then preview="${preview}…"; fi
+        [ -z "$preview" ] && preview="(empty body)"
       else
         preview="[r2 fetch returned empty or failed]"
       fi
