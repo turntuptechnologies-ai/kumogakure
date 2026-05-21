@@ -48,6 +48,20 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'dotenv',
     template: 'fake-env',
   },
+  // Vite dev-server internal routes (/@fs/, /@id/, /@vite/) exposed in
+  // production are the attack surface of the file-read CVE family
+  // (CVE-2025-30208 trailing-separator bypass, CVE-2025-31125
+  // ?import+?raw/?inline bypass). Classify as cve-recon rather than the
+  // dotenv-variant pattern below that the basename would otherwise hit
+  // (e.g. /@fs/.env.test). Template still serves fake-env so the bait
+  // remains engaging; query strings (?raw, ?import, ?raw??) are not
+  // matched here because routing is path-only.
+  {
+    pattern: /^\/@(?:fs|id|vite)(?:\/.*)?$/,
+    category: 'cve-recon',
+    subcategory: 'vite-fs-traversal',
+    template: 'fake-env',
+  },
   {
     pattern: /^\/(?:[^/]+\/)*\.env\.[^/]+$/,
     category: 'config-leak',

@@ -15,6 +15,36 @@ describe('bait patterns', () => {
     expect(findPatternBait('/.env.production')?.template).toBe('fake-env');
   });
 
+  it('routes Vite dev-server internal routes to cve-recon/vite-fs-traversal', () => {
+    // /@fs/, /@id/, /@vite/ exposed in production are the attack surface
+    // of the Vite path-traversal CVE family (CVE-2025-30208 / -31125).
+    for (const p of [
+      '/@fs',
+      '/@fs/',
+      '/@fs/.env.test',
+      '/@fs/etc/passwd',
+      '/@id/main.ts',
+      '/@vite/client',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cve-recon');
+      expect(m?.subcategory).toBe('vite-fs-traversal');
+      expect(m?.template).toBe('fake-env');
+    }
+  });
+
+  it('does not over-match Vite-lookalike paths', () => {
+    for (const p of ['/@unknown/x', '/@fsfoo/x', '/foo@fs/x', '/@', '/@foo']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
+  it('keeps the existing dotenv routings unaffected by the Vite pattern', () => {
+    expect(findPatternBait('/.env.production')?.subcategory).toBe('dotenv-variant');
+    expect(findPatternBait('/sub/.env.test')?.subcategory).toBe('dotenv-variant');
+    expect(findPatternBait('/sub/.env')?.subcategory).toBe('dotenv');
+  });
+
   it('matches .env in any subdirectory as dotenv', () => {
     for (const p of ['/api/.env', '/backend/.env', '/a/b/c/.env']) {
       const m = findPatternBait(p);
