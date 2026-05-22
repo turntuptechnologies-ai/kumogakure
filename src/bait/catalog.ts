@@ -30,6 +30,7 @@ export const explicitBait: BaitEntry[] = [
 
   // config-leak
   { path: '/.env', category: 'config-leak', subcategory: 'dotenv', template: 'fake-env' },
+  { path: '/env', category: 'config-leak', subcategory: 'dotenv', template: 'fake-env' },
   {
     path: '/.git/config',
     category: 'config-leak',

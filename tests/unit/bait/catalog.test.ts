@@ -35,6 +35,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('mcp');
   });
 
+  it('routes the bare /env probe to the dotenv decoy', () => {
+    const entry = findExplicitBait('/env');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('dotenv');
+    expect(entry?.template).toBe('fake-env');
+  });
+
   it('routes the Gravity SMTP CVE-2026-4020 endpoint to its decoy', () => {
     const entry = findExplicitBait('/wp-json/gravitysmtp/v1/tests/mock-data');
     expect(entry?.category).toBe('cve-recon');
