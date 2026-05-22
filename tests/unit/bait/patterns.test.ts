@@ -60,8 +60,17 @@ describe('bait patterns', () => {
     expect(m?.template).toBe('fake-env');
   });
 
+  it('matches named env files (<name>.env) as dotenv-variant', () => {
+    for (const p of ['/aws.env', '/prod.env', '/sub/staging.env']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('dotenv-variant');
+      expect(m?.template).toBe('fake-env');
+    }
+  });
+
   it('does not misclassify lookalikes as dotenv', () => {
-    for (const p of ['/foo.env', '/environment', '/.environment', '/api/env']) {
+    for (const p of ['/environment', '/.environment', '/api/env']) {
       expect(findPatternBait(p)).toBeUndefined();
     }
   });
@@ -93,6 +102,11 @@ describe('bait patterns', () => {
       '/phpinfo',
       '/info',
       '/_profiler/phpinfo',
+      // underscore spellings of the hyphenated allowlist entries
+      '/php_info.php',
+      '/server_info.php',
+      '/server_status.php',
+      '/sub/php_info.php',
     ]) {
       const m = findPatternBait(p);
       expect(m?.category).toBe('config-leak');

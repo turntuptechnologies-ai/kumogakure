@@ -37,11 +37,12 @@ export const patternBait: PatternEntry[] = [
     template: 'fake-env',
   },
   // Scanners spray `.env` across many directories (/api/.env,
-  // /backend/.env, ...), not just the web root. The final path segment
-  // must be exactly `.env` or `.env.<suffix>` so paths like /foo.env
-  // or /environment are not misclassified. Root /.env stays on the
-  // explicit catalog entry (checked first); root /.env.<x> stays on the
-  // pattern above (earlier, first-match wins) — both unchanged.
+  // /backend/.env, ...), not just the web root. This pattern requires
+  // the final path segment to be exactly `.env`; named env files like
+  // `aws.env` are picked up by the `<name>.env` pattern further down.
+  // Root /.env stays on the explicit catalog entry (checked first);
+  // root /.env.<x> stays on the pattern above (earlier, first-match
+  // wins) — both unchanged.
   {
     pattern: /^\/(?:[^/]+\/)*\.env$/,
     category: 'config-leak',
@@ -64,6 +65,16 @@ export const patternBait: PatternEntry[] = [
   },
   {
     pattern: /^\/(?:[^/]+\/)*\.env\.[^/]+$/,
+    category: 'config-leak',
+    subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
+  // Named env files — a non-empty basename ending in `.env`
+  // (aws.env, prod.env, staging.env, ...). Distinct from the bare
+  // `.env` patterns above; verified not to match `/.env`,
+  // `/.env.production`, or `.env-config.js`.
+  {
+    pattern: /^\/(?:[^/]+\/)*[^/]+\.env$/,
     category: 'config-leak',
     subcategory: 'dotenv-variant',
     template: 'fake-env',
@@ -92,7 +103,7 @@ export const patternBait: PatternEntry[] = [
   // (first-match wins).
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-info|php|pinfo|pi|p|i|info|test|debug|server-status|server-info)\.php$/,
+      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)\.php$/,
     category: 'config-leak',
     subcategory: 'phpinfo',
     template: 'phpinfo',
