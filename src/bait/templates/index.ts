@@ -9,6 +9,7 @@ import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeBoto } from './fake-boto.js';
 import { fakeEnv } from './fake-env.js';
+import { fakeGcpServiceAccountKey } from './fake-gcp-service-account-key.js';
 import { fakeGitConfig } from './fake-git-config.js';
 import { fakeGitCredentials } from './fake-git-credentials.js';
 import { fakeGitDirListing } from './fake-git-dir-listing.js';
@@ -93,6 +94,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitattributes': fakeGitattributes,
   'fake-gitmodules': fakeGitmodules,
   'fake-wlwmanifest': fakeWlwmanifest,
+  'fake-gcp-service-account-key': fakeGcpServiceAccountKey,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
