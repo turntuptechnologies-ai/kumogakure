@@ -49,6 +49,64 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('gravity-smtp-system-report');
   });
 
+  it('routes /.vscode/sftp.json to the VS Code SFTP credentials decoy', () => {
+    const entry = findExplicitBait('/.vscode/sftp.json');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('editor-credentials');
+    expect(entry?.template).toBe('fake-vscode-sftp');
+  });
+
+  it('routes /trace.axd to the ASP.NET trace decoy', () => {
+    const entry = findExplicitBait('/trace.axd');
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('aspnet-trace');
+    expect(entry?.template).toBe('aspnet-trace');
+  });
+
+  it('routes /login.action to the Struts decoy', () => {
+    const entry = findExplicitBait('/login.action');
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('struts');
+    expect(entry?.template).toBe('struts-login-action');
+  });
+
+  it('routes /telescope/requests to the Laravel Telescope decoy', () => {
+    const entry = findExplicitBait('/telescope/requests');
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('laravel-telescope');
+    expect(entry?.template).toBe('laravel-telescope');
+  });
+
+  it('routes the Exchange ClickOnce exporttool path to its decoy', () => {
+    const entry = findExplicitBait(
+      '/ecp/Current/exporttool/microsoft.exchange.ediscovery.exporttool.application',
+    );
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('exchange');
+    expect(entry?.template).toBe('exchange-exporttool');
+  });
+
+  it('routes the Swagger UI HTML variants to the swagger-ui-html decoy', () => {
+    for (const path of [
+      '/swagger-ui.html',
+      '/swagger/index.html',
+      '/swagger/swagger-ui.html',
+      '/webjars/swagger-ui/index.html',
+    ]) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category).toBe('api-recon');
+      expect(entry?.subcategory).toBe('openapi');
+      expect(entry?.template).toBe('swagger-ui-html');
+    }
+  });
+
+  it('routes /v2/_catalog to the Docker Registry decoy', () => {
+    const entry = findExplicitBait('/v2/_catalog');
+    expect(entry?.category).toBe('api-recon');
+    expect(entry?.subcategory).toBe('docker-registry');
+    expect(entry?.template).toBe('docker-registry-catalog');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

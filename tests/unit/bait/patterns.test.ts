@@ -363,6 +363,34 @@ describe('bait patterns', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });
 
+  it('routes the Atlassian Jira pom.properties fingerprint path (CVE-2019-8442)', () => {
+    for (const p of [
+      '/s/abc123/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',
+      '/s/8373e26393e21323e2430313/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',
+      '/s/x/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cve-recon');
+      expect(m?.subcategory).toBe('atlassian-jira');
+      expect(m?.template).toBe('jira-pom-properties');
+    }
+  });
+
+  it('does not over-match Atlassian-lookalike paths', () => {
+    for (const p of [
+      // Missing the bypass ';' segment.
+      '/s/abc/_/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',
+      // Wrong artifactId.
+      '/s/abc/_/;/META-INF/maven/com.atlassian.jira/jira-other/pom.properties',
+      // Wrong tail.
+      '/s/abc/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.xml',
+      // Empty token segment.
+      '/s//_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',
+    ]) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('matches /.git/* paths', () => {
     expect(findPatternBait('/.git/logs/HEAD')?.category).toBe('config-leak');
   });

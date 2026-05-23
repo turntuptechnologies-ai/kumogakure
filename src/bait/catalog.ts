@@ -51,6 +51,15 @@ export const explicitBait: BaitEntry[] = [
     template: 'fake-server-status',
   },
   { path: '/.DS_Store', category: 'config-leak', subcategory: 'macos', template: 'not-found' },
+  // VS Code SFTP extension (liximomo / Natizyskunk fork) deploy config:
+  // host / username / password / privateKeyPath / passphrase in cleartext.
+  // Same credential-theft class as .aws/credentials & .git-credentials.
+  {
+    path: '/.vscode/sftp.json',
+    category: 'config-leak',
+    subcategory: 'editor-credentials',
+    template: 'fake-vscode-sftp',
+  },
 
   // cve-recon
   {
@@ -91,6 +100,46 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'gravity-smtp',
     template: 'gravity-smtp-system-report',
   },
+  // ASP.NET <trace enabled localOnly="false"> info disclosure
+  // (CWE-200 misconfig — no single CVE; classic enumeration target).
+  {
+    path: '/trace.axd',
+    category: 'cve-recon',
+    subcategory: 'aspnet-trace',
+    template: 'aspnet-trace',
+  },
+  // Apache Struts /login.action — OGNL CVE family target:
+  //   CVE-2017-5638  (S2-045, multipart Content-Type — Equifax)
+  //   CVE-2017-9805  (S2-052, REST plugin XStream deserialization)
+  //   CVE-2018-11776 (S2-057, namespace/action URL OGNL)
+  //   CVE-2023-50164 (file-upload path traversal).
+  {
+    path: '/login.action',
+    category: 'cve-recon',
+    subcategory: 'struts',
+    template: 'struts-login-action',
+  },
+  // Laravel Telescope debug dashboard exposed without auth gate
+  // (CWE-285 + CWE-200 — misconfigured TelescopeServiceProvider::gate).
+  // No single product CVE; Laravel's own docs warn against this.
+  {
+    path: '/telescope/requests',
+    category: 'cve-recon',
+    subcategory: 'laravel-telescope',
+    template: 'laravel-telescope',
+  },
+  // Exchange /ecp/ ClickOnce eDiscovery Export Tool manifest. Used as
+  // a fingerprint that the /ecp/ surface is reachable, then exploited
+  // via the SSRF + post-auth RCE chains that share that surface:
+  //   CVE-2021-26855 / -26857 / -26858 / -27065 (ProxyLogon)
+  //   CVE-2021-34473 / -34523 / -31207         (ProxyShell)
+  //   CVE-2022-41040 / -41082                  (ProxyNotShell).
+  {
+    path: '/ecp/Current/exporttool/microsoft.exchange.ediscovery.exporttool.application',
+    category: 'cve-recon',
+    subcategory: 'exchange',
+    template: 'exchange-exporttool',
+  },
 
   // ssrf-bait
   {
@@ -117,6 +166,32 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'openapi',
     template: 'swagger-fake',
   },
+  // Swagger UI HTML entrypoints — the SpringFox / springdoc-openapi /
+  // webjars conventions all settle on small variants of the same page.
+  {
+    path: '/swagger-ui.html',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-ui-html',
+  },
+  {
+    path: '/swagger/index.html',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-ui-html',
+  },
+  {
+    path: '/swagger/swagger-ui.html',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-ui-html',
+  },
+  {
+    path: '/webjars/swagger-ui/index.html',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-ui-html',
+  },
   {
     path: '/graphql',
     category: 'api-recon',
@@ -124,6 +199,14 @@ export const explicitBait: BaitEntry[] = [
     template: 'graphql-introspection',
   },
   { path: '/api/v1/health', category: 'api-recon', subcategory: 'generic', template: 'api-health' },
+  // Docker Registry HTTP API V2 catalog (CWE-306 default-no-auth
+  // exposure of a `registry:2` container).
+  {
+    path: '/v2/_catalog',
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-catalog',
+  },
 
   // iot-recon
   { path: '/HNAP1/', category: 'iot-recon', subcategory: 'dlink', template: 'hnap1' },

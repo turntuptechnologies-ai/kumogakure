@@ -1,9 +1,12 @@
 import type { TemplateFn, TemplateName } from '../../types.js';
 import { apiHealth } from './api-health.js';
+import { aspnetTrace } from './aspnet-trace.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
+import { dockerRegistryCatalog } from './docker-registry-catalog.js';
 import { drupalLogin } from './drupal-login.js';
+import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
@@ -23,6 +26,7 @@ import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
+import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
@@ -30,7 +34,9 @@ import { gitlabSignIn } from './gitlab-sign-in.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
 import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
+import { jiraPomProperties } from './jira-pom-properties.js';
 import { joomlaLogin } from './joomla-login.js';
+import { laravelTelescope } from './laravel-telescope.js';
 import { mcp } from './mcp.js';
 import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
@@ -38,7 +44,9 @@ import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
 import { springActuatorHealth } from './spring-actuator-health.js';
+import { strutsLoginAction } from './struts-login-action.js';
 import { swaggerFake } from './swagger-fake.js';
+import { swaggerUiHtml } from './swagger-ui-html.js';
 import { uploadSuccess } from './upload-success.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
@@ -95,6 +103,14 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitmodules': fakeGitmodules,
   'fake-wlwmanifest': fakeWlwmanifest,
   'fake-gcp-service-account-key': fakeGcpServiceAccountKey,
+  'swagger-ui-html': swaggerUiHtml,
+  'fake-vscode-sftp': fakeVscodeSftp,
+  'aspnet-trace': aspnetTrace,
+  'struts-login-action': strutsLoginAction,
+  'laravel-telescope': laravelTelescope,
+  'exchange-exporttool': exchangeExporttool,
+  'docker-registry-catalog': dockerRegistryCatalog,
+  'jira-pom-properties': jiraPomProperties,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
