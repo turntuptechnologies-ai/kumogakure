@@ -11,6 +11,21 @@ describe('bait patterns', () => {
     expect(findPatternBait('/config.old')?.category).toBe('config-leak');
   });
 
+  it('matches tilde-suffixed editor-backup files at any depth', () => {
+    for (const p of ['/phpinfo.php~', '/sub/wp-config.php~', '/.env~', '/app/index.php~']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('backup');
+      expect(m?.template).toBe('not-found');
+    }
+  });
+
+  it('does not over-match tilde-backup lookalikes', () => {
+    for (const p of ['/~user', '/~', '/foo~bar']) {
+      expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
   it('matches .env variants such as .env.production', () => {
     expect(findPatternBait('/.env.production')?.template).toBe('fake-env');
   });
@@ -66,6 +81,45 @@ describe('bait patterns', () => {
       expect(m?.category).toBe('config-leak');
       expect(m?.subcategory).toBe('dotenv-variant');
       expect(m?.template).toBe('fake-env');
+    }
+  });
+
+  it('matches numbered / suffixed .env variants (.env1, .env_copy) as dotenv-variant', () => {
+    for (const p of ['/.env1', '/.env2', '/.env_copy', '/.env_backup', '/sub/.env1']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('dotenv-variant');
+      expect(m?.template).toBe('fake-env');
+    }
+  });
+
+  it('does not over-match suffixed .env variants', () => {
+    // The literal `.env` must be followed by a digit or underscore;
+    // `.env.production` / `.env-config.js` / `.env~` go elsewhere.
+    expect(findPatternBait('/.env.production')?.subcategory).toBe('dotenv-variant');
+    expect(findPatternBait('/.env~')?.subcategory).toBe('backup');
+    expect(findPatternBait('/.env-config.js')).toBeUndefined();
+    expect(findPatternBait('/.environment')).toBeUndefined();
+  });
+
+  it('routes CakePHP DebugKit /_environment probes to the env decoy', () => {
+    for (const p of ['/_environment', '/webroot/index.php/_environment']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('cakephp-debugkit');
+      expect(m?.template).toBe('fake-env');
+    }
+  });
+
+  it('does not over-match the CakePHP _environment endpoint', () => {
+    for (const p of [
+      '/_environments',
+      '/_environment/',
+      '/_environment.json',
+      '/foo/_environment',
+      '/webroot/_environment',
+    ]) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('cakephp-debugkit');
     }
   });
 
@@ -156,6 +210,50 @@ describe('bait patterns', () => {
   it('does not over-match cloud credential lookalikes', () => {
     for (const p of ['/foo.boto', '/.s3cfgx', '/.aws/credentialsx', '/.aws', '/aws/config']) {
       expect(findPatternBait(p)).toBeUndefined();
+    }
+  });
+
+  it('routes GCP service-account JSON key probes at any depth to cloud-credentials', () => {
+    for (const p of [
+      '/keyfile.json',
+      '/key.json',
+      '/service-account.json',
+      '/sa.json',
+      '/firebase-adminsdk.json',
+      '/firebase-key.json',
+      '/google-key.json',
+      '/google-credentials.json',
+      '/gcp-sa.json',
+      '/gcp-key.json',
+      '/gcp-credentials.json',
+      '/credentials.json',
+      '/application_default_credentials.json',
+      '/config/credentials.json',
+      '/secrets/service-account.json',
+      '/a/b/c/keyfile.json',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('cloud-credentials');
+      expect(m?.template).toBe('fake-gcp-service-account-key');
+    }
+  });
+
+  it('does not over-match GCP service-account JSON lookalikes', () => {
+    for (const p of [
+      '/keyfile.txt',
+      '/foo-key.json',
+      '/notkey.json',
+      '/keyfile.json.bak',
+      '/keyfile.jsonx',
+      '/key.json/extra',
+      '/manifest.json',
+      '/package.json',
+    ]) {
+      const m = findPatternBait(p);
+      // Either undefined, or routed via a different rule — must not be
+      // the GCP SA decoy.
+      expect(m?.template).not.toBe('fake-gcp-service-account-key');
     }
   });
 

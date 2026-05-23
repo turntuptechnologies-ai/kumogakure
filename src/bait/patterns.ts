@@ -30,6 +30,16 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'backup',
     template: 'not-found',
   },
+  // Editor-backup tilde-suffixed files (emacs/vi save a copy as
+  // `foo.bar~`). Parallel convention to the extension-based backup
+  // pattern above. Anything ending in `~` after at least one path
+  // character is treated as a backup probe — same disposition.
+  {
+    pattern: /^\/.+~$/,
+    category: 'config-leak',
+    subcategory: 'backup',
+    template: 'not-found',
+  },
   {
     pattern: /^\/\.env\..+$/,
     category: 'config-leak',
@@ -77,6 +87,27 @@ export const patternBait: PatternEntry[] = [
     pattern: /^\/(?:[^/]+\/)*[^/]+\.env$/,
     category: 'config-leak',
     subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
+  // Manual-copy / numbered env-file variants (.env1, .env2, .env_copy,
+  // .env_backup, ...). The `.env` literal must be followed by a digit
+  // or underscore — verified not to match `.env`, `.env.production`,
+  // `.environment`, or `.env~` (latter goes to the tilde-backup
+  // pattern above).
+  {
+    pattern: /^\/(?:[^/]+\/)*\.env[0-9_].*$/,
+    category: 'config-leak',
+    subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
+  // CakePHP DebugKit `_environment` endpoint, exposed in production
+  // dumps $_ENV. Covers the bare `/_environment` and the CakePHP-
+  // routed `/webroot/index.php/_environment` shape. Template reuses
+  // `fake-env` since the response is essentially an env dump.
+  {
+    pattern: /^\/(?:webroot\/index\.php\/)?_environment$/,
+    category: 'config-leak',
+    subcategory: 'cakephp-debugkit',
     template: 'fake-env',
   },
   // MCP servers (JSON-RPC 2.0 over the Streamable HTTP transport) are
@@ -159,6 +190,19 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'aws',
     template: 'fake-aws-config',
+  },
+  // GCP service-account JSON key files. Operators routinely commit
+  // these under varied basenames (keyfile.json, service-account.json,
+  // firebase-adminsdk.json, application_default_credentials.json, …).
+  // Final segment must match a known basename + `.json`; any depth.
+  // Same credential-theft class as the .aws/* and .git-credentials
+  // family, so this is `cloud-credentials` subcategory.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*(?:keyfile|key|google-key|firebase-key|firebase-adminsdk|service-account|sa|google-credentials|gcp-sa|gcp-key|gcp-credentials|credentials|application_default_credentials)\.json$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-gcp-service-account-key',
   },
   // .netrc / _netrc (Windows): plaintext auto-login store for curl /
   // wget / git-over-HTTPS / ftp. Same credential-theft class as the
