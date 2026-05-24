@@ -27,6 +27,23 @@ export const explicitBait: BaitEntry[] = [
     template: 'phpmyadmin-login',
   },
   { path: '/user/login', category: 'cms-auth', subcategory: 'drupal', template: 'drupal-login' },
+  // cPanel / WHM service-subdomain proxy fingerprint endpoints — the
+  // `/___proxy_subdomain_<service>` convention is cPanel's own URL
+  // shape for routing the panel/admin UI on shared infra. Both have
+  // an active CVE history (XSS / auth-bypass families) and are stuffed
+  // by credential-rotation bots constantly.
+  {
+    path: '/___proxy_subdomain_cpanel',
+    category: 'cms-auth',
+    subcategory: 'cpanel',
+    template: 'cpanel-login',
+  },
+  {
+    path: '/___proxy_subdomain_whm/login',
+    category: 'cms-auth',
+    subcategory: 'whm',
+    template: 'whm-login',
+  },
 
   // config-leak
   { path: '/.env', category: 'config-leak', subcategory: 'dotenv', template: 'fake-env' },
@@ -127,6 +144,16 @@ export const explicitBait: BaitEntry[] = [
     category: 'cve-recon',
     subcategory: 'laravel-telescope',
     template: 'laravel-telescope',
+  },
+  // Yii2 Debug Toolbar request-log viewer (`yii\debug\Module`) exposed
+  // to non-allowed IPs in production — CWE-200 + CWE-285, documented
+  // misconfiguration of the module's `allowedIPs`. No single product
+  // CVE.
+  {
+    path: '/debug/default/view',
+    category: 'cve-recon',
+    subcategory: 'yii2-debug',
+    template: 'yii2-debug',
   },
   // Exchange /ecp/ ClickOnce eDiscovery Export Tool manifest. Used as
   // a fingerprint that the /ecp/ surface is reachable, then exploited
