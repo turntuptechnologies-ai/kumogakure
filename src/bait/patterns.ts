@@ -281,8 +281,15 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'elasticsearch',
     template: 'not-found',
   },
+  // WebLogic admin console — `/console/` (with or without anything
+  // after the trailing slash) is the canonical base path of the
+  // admin webapp, target of the long-running deserialization CVE
+  // family (CVE-2017-3506 / -10271 / -3248 / -2628, CVE-2019-2725 /
+  // -2729, CVE-2020-2551 / -14882 / -14883, …). The bare-dir variant
+  // `/console/` is enumerated by scanners separately from the named
+  // child paths, so the pattern needs the `*` quantifier.
   {
-    pattern: /^\/console\/.+/,
+    pattern: /^\/console\/.*$/,
     category: 'cve-recon',
     subcategory: 'weblogic',
     template: 'not-found',

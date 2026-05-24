@@ -363,6 +363,22 @@ describe('bait patterns', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });
 
+  it('routes the WebLogic /console/ admin webapp at any depth, incl. bare /console/', () => {
+    for (const p of ['/console/', '/console/login', '/console/css/login.css', '/console/foo/bar']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cve-recon');
+      expect(m?.subcategory).toBe('weblogic');
+    }
+  });
+
+  it('does not over-match WebLogic /console lookalikes', () => {
+    // Bare `/console` without trailing slash is not the admin webapp
+    // base; treat it as unmatched (anything else would over-broaden).
+    expect(findPatternBait('/console')).toBeUndefined();
+    expect(findPatternBait('/consolex')).toBeUndefined();
+    expect(findPatternBait('/foo/console/')).toBeUndefined();
+  });
+
   it('routes the Atlassian Jira pom.properties fingerprint path (CVE-2019-8442)', () => {
     for (const p of [
       '/s/abc123/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',

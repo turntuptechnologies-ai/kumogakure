@@ -107,6 +107,27 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('docker-registry-catalog');
   });
 
+  it('routes /debug/default/view to the Yii2 Debug Toolbar decoy', () => {
+    const entry = findExplicitBait('/debug/default/view');
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('yii2-debug');
+    expect(entry?.template).toBe('yii2-debug');
+  });
+
+  it('routes /___proxy_subdomain_cpanel to the cPanel login decoy', () => {
+    const entry = findExplicitBait('/___proxy_subdomain_cpanel');
+    expect(entry?.category).toBe('cms-auth');
+    expect(entry?.subcategory).toBe('cpanel');
+    expect(entry?.template).toBe('cpanel-login');
+  });
+
+  it('routes /___proxy_subdomain_whm/login to the WHM login decoy', () => {
+    const entry = findExplicitBait('/___proxy_subdomain_whm/login');
+    expect(entry?.category).toBe('cms-auth');
+    expect(entry?.subcategory).toBe('whm');
+    expect(entry?.template).toBe('whm-login');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

@@ -4,6 +4,7 @@ import { aspnetTrace } from './aspnet-trace.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
+import { cpanelLogin } from './cpanel-login.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
 import { drupalLogin } from './drupal-login.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
@@ -48,8 +49,10 @@ import { strutsLoginAction } from './struts-login-action.js';
 import { swaggerFake } from './swagger-fake.js';
 import { swaggerUiHtml } from './swagger-ui-html.js';
 import { uploadSuccess } from './upload-success.js';
+import { whmLogin } from './whm-login.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
+import { yii2Debug } from './yii2-debug.js';
 
 const notFound: TemplateFn = () => {
   return new Response('Not Found', {
@@ -111,6 +114,9 @@ const templates: Record<string, TemplateFn> = {
   'exchange-exporttool': exchangeExporttool,
   'docker-registry-catalog': dockerRegistryCatalog,
   'jira-pom-properties': jiraPomProperties,
+  'yii2-debug': yii2Debug,
+  'cpanel-login': cpanelLogin,
+  'whm-login': whmLogin,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
