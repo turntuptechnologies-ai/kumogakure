@@ -293,6 +293,19 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'spring',
     template: 'spring-actuator-generic',
   },
+  // Atlassian Jira static-resource path-traversal version fingerprint:
+  //   /s/<token>/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties
+  // The trailing `;`-segment bypasses the static-resource filter and
+  // returns the bundled pom.properties (CVE-2019-8442 — also the
+  // ServletPath issue that enabled CVE-2019-8449 / -8451 SSRF recon).
+  // <token> is scanner-generated; we accept any non-`/` segment.
+  {
+    pattern:
+      /^\/s\/[^/]+\/_\/;\/META-INF\/maven\/com\.atlassian\.jira\/jira-webapp-dist\/pom\.properties$/,
+    category: 'cve-recon',
+    subcategory: 'atlassian-jira',
+    template: 'jira-pom-properties',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {
