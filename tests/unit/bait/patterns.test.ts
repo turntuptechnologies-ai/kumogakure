@@ -363,6 +363,83 @@ describe('bait patterns', () => {
     expect(findPatternBait('/actuator/beans')?.template).toBe('spring-actuator-generic');
   });
 
+  it('routes Spring Boot application.yml at any classpath depth', () => {
+    for (const p of [
+      '/application.yml',
+      '/application.yaml',
+      '/config/application.yml',
+      '/src/main/resources/application.yml',
+      '/BOOT-INF/classes/application.yml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('spring-config');
+      expect(m?.template).toBe('spring-application-yml');
+    }
+  });
+
+  it('does not over-match Spring application.yml lookalikes', () => {
+    for (const p of ['/application.yml.bak', '/notapplication.yml', '/application.yml/']) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('spring-config');
+    }
+  });
+
+  it('routes Symfony parameters.yml at any depth', () => {
+    for (const p of [
+      '/parameters.yml',
+      '/parameters.yaml',
+      '/app/config/parameters.yml',
+      '/config/parameters.yml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('symfony-config');
+      expect(m?.template).toBe('symfony-parameters-yml');
+    }
+  });
+
+  it('routes docker-compose.yml and per-environment overrides', () => {
+    for (const p of [
+      '/docker-compose.yml',
+      '/docker-compose.yaml',
+      '/docker-compose.override.yml',
+      '/docker-compose.prod.yml',
+      '/docker-compose.staging.yml',
+      '/docker-compose.dev.yml',
+      '/deploy/docker-compose.yml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('docker-compose');
+      expect(m?.template).toBe('docker-compose-yml');
+    }
+  });
+
+  it('does not over-match docker-compose lookalikes', () => {
+    for (const p of [
+      '/docker-compose.yml.bak',
+      '/docker-composex.yml',
+      '/docker-compose.unknown-env.yml',
+    ]) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('docker-compose');
+    }
+  });
+
+  it('routes Django settings.py at any depth', () => {
+    for (const p of ['/settings.py', '/config/settings.py', '/myapp/settings.py']) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('config-leak');
+      expect(m?.subcategory).toBe('django-settings');
+      expect(m?.template).toBe('django-settings');
+    }
+  });
+
+  it('does not over-match settings.py lookalikes', () => {
+    for (const p of ['/settings.pyc', '/settings.py.bak', '/notsettings.py']) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('django-settings');
+    }
+  });
+
   it('routes the WebLogic /console/ admin webapp at any depth, incl. bare /console/', () => {
     for (const p of ['/console/', '/console/login', '/console/css/login.css', '/console/foo/bar']) {
       const m = findPatternBait(p);
