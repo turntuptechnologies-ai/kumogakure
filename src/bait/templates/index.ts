@@ -1,11 +1,13 @@
 import type { TemplateFn, TemplateName } from '../../types.js';
 import { apiHealth } from './api-health.js';
 import { aspnetTrace } from './aspnet-trace.js';
+import { aspnetWebConfig } from './aspnet-web-config.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
 import { cpanelLogin } from './cpanel-login.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
+import { dotnetAppsettings } from './dotnet-appsettings.js';
 import { drupalLogin } from './drupal-login.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
@@ -117,6 +119,8 @@ const templates: Record<string, TemplateFn> = {
   'yii2-debug': yii2Debug,
   'cpanel-login': cpanelLogin,
   'whm-login': whmLogin,
+  'aspnet-web-config': aspnetWebConfig,
+  'dotnet-appsettings': dotnetAppsettings,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

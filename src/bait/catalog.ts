@@ -68,6 +68,23 @@ export const explicitBait: BaitEntry[] = [
     template: 'fake-server-status',
   },
   { path: '/.DS_Store', category: 'config-leak', subcategory: 'macos', template: 'not-found' },
+  // ASP.NET (Framework) web.config XML — leaks <connectionStrings>
+  // and <appSettings> in cleartext when served as source. ASP.NET
+  // Core's appsettings.json is the JSON-era equivalent; both share
+  // the `aspnet-config` subcategory since they're the same disclosure
+  // class.
+  {
+    path: '/web.config',
+    category: 'config-leak',
+    subcategory: 'aspnet-config',
+    template: 'aspnet-web-config',
+  },
+  {
+    path: '/appsettings.json',
+    category: 'config-leak',
+    subcategory: 'aspnet-config',
+    template: 'dotnet-appsettings',
+  },
   // VS Code SFTP extension (liximomo / Natizyskunk fork) deploy config:
   // host / username / password / privateKeyPath / passphrase in cleartext.
   // Same credential-theft class as .aws/credentials & .git-credentials.

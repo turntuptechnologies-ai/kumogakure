@@ -128,6 +128,20 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('whm-login');
   });
 
+  it('routes /web.config to the ASP.NET web.config decoy', () => {
+    const entry = findExplicitBait('/web.config');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('aspnet-config');
+    expect(entry?.template).toBe('aspnet-web-config');
+  });
+
+  it('routes /appsettings.json to the .NET Core appsettings decoy', () => {
+    const entry = findExplicitBait('/appsettings.json');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('aspnet-config');
+    expect(entry?.template).toBe('dotnet-appsettings');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);
