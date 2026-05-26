@@ -142,6 +142,36 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('dotnet-appsettings');
   });
 
+  it('routes /configuration.php to the Joomla configuration.php decoy', () => {
+    const entry = findExplicitBait('/configuration.php');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('joomla-config');
+    expect(entry?.template).toBe('joomla-configuration-php');
+  });
+
+  it('routes /settings.php to the Drupal settings.php decoy', () => {
+    const entry = findExplicitBait('/settings.php');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('drupal-config');
+    expect(entry?.template).toBe('drupal-settings-php');
+  });
+
+  it('routes /database.php and /db.php to the shared PHP DB-config decoy', () => {
+    for (const path of ['/database.php', '/db.php']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category).toBe('config-leak');
+      expect(entry?.subcategory).toBe('php-db-config');
+      expect(entry?.template).toBe('php-database-config');
+    }
+  });
+
+  it('routes /composer.json to the PHP package-manifest decoy', () => {
+    const entry = findExplicitBait('/composer.json');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('php-package-manifest');
+    expect(entry?.template).toBe('composer-json');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

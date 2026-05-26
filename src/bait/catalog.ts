@@ -94,6 +94,51 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'editor-credentials',
     template: 'fake-vscode-sftp',
   },
+  // Joomla `configuration.php` — `class JConfig` holding DB
+  // credentials, mailer SMTP credentials, the app `$secret`, and
+  // FTP credentials. CWE-200 / CWE-538 source-disclosure class
+  // (PHP misconfigured to serve .php as text).
+  {
+    path: '/configuration.php',
+    category: 'config-leak',
+    subcategory: 'joomla-config',
+    template: 'joomla-configuration-php',
+  },
+  // Drupal `settings.php` — `$databases['default']['default']`
+  // + `$settings['hash_salt']` + Redis credentials.
+  {
+    path: '/settings.php',
+    category: 'config-leak',
+    subcategory: 'drupal-config',
+    template: 'drupal-settings-php',
+  },
+  // Generic PHP DB-config filenames. `/database.php` is Laravel's
+  // canonical `config/database.php` convention (Tier 1 `return [...]`
+  // shape); `/db.php` is the procedural custom-PHP naming. Both leak
+  // DB credentials in cleartext when served as source — same template
+  // (the array form satisfies both scanner expectations).
+  {
+    path: '/database.php',
+    category: 'config-leak',
+    subcategory: 'php-db-config',
+    template: 'php-database-config',
+  },
+  {
+    path: '/db.php',
+    category: 'config-leak',
+    subcategory: 'php-db-config',
+    template: 'php-database-config',
+  },
+  // PHP `composer.json` — package manifest, no secrets but discloses
+  // pinned dependency versions for downstream CVE matching. Same
+  // class as `package.json` / `pom.properties` version-disclosure
+  // paths (Tier 2).
+  {
+    path: '/composer.json',
+    category: 'config-leak',
+    subcategory: 'php-package-manifest',
+    template: 'composer-json',
+  },
 
   // cve-recon
   {
