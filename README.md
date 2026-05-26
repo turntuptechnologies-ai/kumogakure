@@ -103,12 +103,23 @@ intentionally defers freshly published versions at two layers:
 - **pnpm install layer** ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
   sets `minimumReleaseAge: 10080` (7 days), so manual `pnpm add` and
   lockfile refreshes refuse versions younger than that.
+- **Lifecycle-script allowlist** ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
+  pins `onlyBuiltDependencies` to the minimal set the repo actually
+  needs (`esbuild`, `workerd`). pnpm blocks postinstall scripts by
+  default; this list re-enables them only for the two packages whose
+  platform binaries `wrangler dev` / `wrangler deploy` require.
+  Removing or widening this list breaks the build (empty
+  platform binaries → `esbuild: not found` / workerd missing). Do
+  **NOT** add `ignore-scripts` either — it would override the
+  allowlist and re-break the binaries. The setting lives in
+  `pnpm-workspace.yaml` because pnpm >= 11 silently ignores the older
+  `pnpm.onlyBuiltDependencies` field in `package.json`.
 
-Both apply only to *version* updates; Dependabot **security updates**
-for known CVEs are exempt and still land promptly. CodeQL default
-setup runs the `security-extended` query suite; Dependabot security
-updates and private vulnerability reporting are enabled at the
-repository level.
+The first two apply only to *version* updates; Dependabot
+**security updates** for known CVEs are exempt and still land
+promptly. CodeQL default setup runs the `security-extended` query
+suite; Dependabot security updates and private vulnerability
+reporting are enabled at the repository level.
 
 ## Development
 
@@ -137,8 +148,20 @@ After `pnpm install`, the following scripts are available:
 3. Create the template module under `src/bait/templates/<name>.ts` exporting a
    `TemplateFn`. Follow [`docs/RESPONSE_TEMPLATE_POLICY.md`](docs/RESPONSE_TEMPLATE_POLICY.md).
 4. Register the template in `src/bait/templates/index.ts`.
-5. Add a unit test under `tests/unit/templates/<name>.test.ts`.
-6. Verify with `pnpm typecheck`, `pnpm lint`, and `pnpm test`.
+5. For a `cve-recon` entry, cite the relevant CVE IDs in the template's
+   leading comment **and** as an inline comment on the catalog/pattern
+   entry, so the routing tables document the threat model they target.
+   See existing entries such as `struts-login-action`, `exchange-exporttool`,
+   or `jira-pom-properties` for the convention.
+6. Add a unit test under `tests/unit/templates/<name>.test.ts` covering the
+   template policy (status, content-type, redacted placeholders, no
+   canary headers).
+7. Add a routing test in `tests/unit/bait/catalog.test.ts` (explicit
+   paths) or `tests/unit/bait/patterns.test.ts` (regex patterns).
+   Include a non-match guard if the pattern has any lookalike risk —
+   the existing dotenv / WebLogic / Atlassian-Jira pattern tests show
+   the shape.
+8. Verify with `pnpm typecheck`, `pnpm lint`, and `pnpm test`.
 
 ## License
 
