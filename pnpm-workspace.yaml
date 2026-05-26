@@ -13,3 +13,17 @@
 # tier (patch / github-actions). Add minimumReleaseAgeExclude below if
 # a specific package ever needs to bypass this.
 minimumReleaseAge: 10080
+
+# Allowlist of packages whose lifecycle (postinstall) scripts may run.
+# pnpm >= 10 blocks lifecycle scripts by default — without this list,
+# `esbuild` and `workerd` ship empty platform binaries and
+# `wrangler dev` / `wrangler deploy` fail at runtime ("esbuild: not
+# found" / workerd missing). The two entries below are the minimal
+# set this repo needs; do NOT widen without a specific reason, and do
+# NOT add `ignore-scripts` (it would override this allowlist).
+#
+# Migrated from `package.json`'s `pnpm.onlyBuiltDependencies`, which
+# pnpm >= 11 silently ignores (the field is now resolved here).
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
