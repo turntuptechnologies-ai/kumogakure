@@ -6,6 +6,8 @@ import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
 import { cpanelLogin } from './cpanel-login.js';
+import { djangoSettings } from './django-settings.js';
+import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
 import { dotnetAppsettings } from './dotnet-appsettings.js';
 import { drupalLogin } from './drupal-login.js';
@@ -47,9 +49,11 @@ import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
 import { springActuatorHealth } from './spring-actuator-health.js';
+import { springApplicationYml } from './spring-application-yml.js';
 import { strutsLoginAction } from './struts-login-action.js';
 import { swaggerFake } from './swagger-fake.js';
 import { swaggerUiHtml } from './swagger-ui-html.js';
+import { symfonyParametersYml } from './symfony-parameters-yml.js';
 import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
 import { wordpressLogin } from './wordpress-login.js';
@@ -121,6 +125,10 @@ const templates: Record<string, TemplateFn> = {
   'whm-login': whmLogin,
   'aspnet-web-config': aspnetWebConfig,
   'dotnet-appsettings': dotnetAppsettings,
+  'spring-application-yml': springApplicationYml,
+  'symfony-parameters-yml': symfonyParametersYml,
+  'docker-compose-yml': dockerComposeYml,
+  'django-settings': djangoSettings,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

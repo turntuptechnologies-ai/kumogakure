@@ -229,6 +229,49 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'package-registry-credentials',
     template: 'fake-pypirc',
   },
+  // Spring Boot `application.yml` / `application.yaml`. Scanners hit
+  // it at every plausible classpath depth (`/application.yml`,
+  // `/config/application.yml`, `/src/main/resources/application.yml`,
+  // `/BOOT-INF/classes/application.yml`, …) when a fat JAR is
+  // mis-served as static files. `spring.datasource.*` and security
+  // secrets leak in cleartext.
+  {
+    pattern: /^\/(?:[^/]+\/)*application\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'spring-config',
+    template: 'spring-application-yml',
+  },
+  // Symfony 2.x / 3.x `parameters.yml` — DB credentials, mailer SMTP
+  // credentials, and the app-wide `secret`. Probed at the canonical
+  // `/app/config/parameters.yml` (legacy 2.x), `/config/parameters.yml`
+  // (3.x), and the bare `/parameters.yml`.
+  {
+    pattern: /^\/(?:[^/]+\/)*parameters\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'symfony-config',
+    template: 'symfony-parameters-yml',
+  },
+  // `docker-compose.yml` and its per-environment overrides
+  // (`docker-compose.override.yml`, `.prod.yml`, `.staging.yml`, …).
+  // `environment:` blocks routinely carry plaintext DATABASE_URL,
+  // JWT_SECRET, REDIS_PASSWORD, Postgres credentials, etc.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*docker-compose(?:\.(?:override|local|dev|development|prod|production|staging|test))?\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'docker-compose',
+    template: 'docker-compose-yml',
+  },
+  // Django `settings.py` at any depth (e.g. `/settings.py`,
+  // `/<project>/settings.py`, `/config/settings.py`). Exposes
+  // `SECRET_KEY`, `DATABASES['default']`, and `EMAIL_HOST_PASSWORD`
+  // when served as source. CWE-200 / CWE-538 disclosure class.
+  {
+    pattern: /^\/(?:[^/]+\/)*settings\.py$/,
+    category: 'config-leak',
+    subcategory: 'django-settings',
+    template: 'django-settings',
+  },
   {
     pattern: /^\/cgi-bin\/.+/,
     category: 'cve-recon',
