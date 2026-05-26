@@ -320,6 +320,33 @@ attach a custom hostname, ensure WAF, Bot Fight Mode, and Security Level
 are disabled or set to permissive — otherwise Cloudflare will block
 attacker traffic before it reaches the Worker.
 
+### `pnpm typecheck` reports `Env` is missing resource-name properties
+
+If type-check fails with errors like:
+
+```
+error TS1360: Type '{ DB: D1Database; PAYLOADS: R2Bucket; ... }' does not
+satisfy the expected type 'Env'. Type is missing the following properties
+from type 'Env': kumogakure_payloads, kumogakure
+```
+
+…the locally-checked-out `worker-configuration.d.ts` is stale. A previous
+`wrangler types` run against a different `wrangler.jsonc` or wrangler
+version left a broken generated file behind. The file is git-tracked and
+`git pull` will not overwrite locally-modified files, so the bad state
+persists silently across pulls.
+
+Fix:
+
+```bash
+git checkout -- worker-configuration.d.ts
+pnpm typecheck
+```
+
+If `wrangler.jsonc` genuinely changed and the file must be regenerated,
+run `pnpm run types` afterwards and commit the result so the next fresh
+clone is clean.
+
 ## Operational notes
 
 - The Worker is intentionally low-interaction. It records requests but
