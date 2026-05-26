@@ -5,12 +5,14 @@ import { aspnetWebConfig } from './aspnet-web-config.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
+import { composerJson } from './composer-json.js';
 import { cpanelLogin } from './cpanel-login.js';
 import { djangoSettings } from './django-settings.js';
 import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
 import { dotnetAppsettings } from './dotnet-appsettings.js';
 import { drupalLogin } from './drupal-login.js';
+import { drupalSettingsPhp } from './drupal-settings-php.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
@@ -40,9 +42,11 @@ import { graphqlIntrospection } from './graphql-introspection.js';
 import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
 import { jiraPomProperties } from './jira-pom-properties.js';
+import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
 import { laravelTelescope } from './laravel-telescope.js';
 import { mcp } from './mcp.js';
+import { phpDatabaseConfig } from './php-database-config.js';
 import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { solrAdminCores } from './solr-admin-cores.js';
@@ -129,6 +133,10 @@ const templates: Record<string, TemplateFn> = {
   'symfony-parameters-yml': symfonyParametersYml,
   'docker-compose-yml': dockerComposeYml,
   'django-settings': djangoSettings,
+  'joomla-configuration-php': joomlaConfigurationPhp,
+  'drupal-settings-php': drupalSettingsPhp,
+  'php-database-config': phpDatabaseConfig,
+  'composer-json': composerJson,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
