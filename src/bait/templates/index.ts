@@ -60,7 +60,10 @@ import { swaggerUiHtml } from './swagger-ui-html.js';
 import { symfonyParametersYml } from './symfony-parameters-yml.js';
 import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
+import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
+import { wordpressOembed } from './wordpress-oembed.js';
+import { wordpressUsersApi } from './wordpress-users-api.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
 import { yii2Debug } from './yii2-debug.js';
 
@@ -137,6 +140,9 @@ const templates: Record<string, TemplateFn> = {
   'drupal-settings-php': drupalSettingsPhp,
   'php-database-config': phpDatabaseConfig,
   'composer-json': composerJson,
+  'wordpress-id3-license': wordpressId3License,
+  'wordpress-users-api': wordpressUsersApi,
+  'wordpress-oembed': wordpressOembed,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

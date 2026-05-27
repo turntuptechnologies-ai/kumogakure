@@ -24,6 +24,40 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wordpress-fingerprint',
     template: 'fake-wlwmanifest',
   },
+  // wp-includes/ID3/license.txt — the getID3 audio library WordPress
+  // vendors; scanners read this file as a stable WP-installed
+  // fingerprint (parallel to wlwmanifest.xml above). `\/+` allows
+  // double-slash prefixes (`/blog//wp-includes/...`) which scanner
+  // path-template bugs occasionally produce and Cloudflare does not
+  // normalise.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-includes\/ID3\/license\.txt$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'wordpress-id3-license',
+  },
+  // WordPress REST API `wp-json/wp/v2/users/` — public, unauthenticated
+  // user enumeration when the default permissions are left on.
+  // Returns slug + display name + bio for every user account, which
+  // scanners then feed into credential-stuffing. Distinct subcategory
+  // from `wordpress-fingerprint` because the threat model is user
+  // enumeration, not version detection.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/wp\/v2\/users\/?$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-rest-users',
+    template: 'wordpress-users-api',
+  },
+  // WordPress REST API `wp-json/oembed/1.0/embed` — fingerprint probe
+  // that records "WP REST is reachable". Real WP returns 400 with
+  // `rest_missing_callback_param` when `?url=` is absent, which is the
+  // shape our template mirrors.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/oembed\/1\.0\/embed$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'wordpress-oembed',
+  },
   {
     pattern: /^\/.*\.(bak|swp|old|orig|save|backup)$/,
     category: 'config-leak',
