@@ -311,6 +311,78 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes wp-includes/ID3/license.txt at any depth (including double-slash prefixes)', () => {
+    for (const p of [
+      '/wp-includes/ID3/license.txt',
+      '/blog/wp-includes/ID3/license.txt',
+      '/blog//wp-includes/ID3/license.txt', // scanner double-slash artifact
+      '/2024/wp-includes/ID3/license.txt',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cms-auth');
+      expect(m?.subcategory).toBe('wordpress-fingerprint');
+      expect(m?.template).toBe('wordpress-id3-license');
+    }
+  });
+
+  it('does not over-match ID3/license.txt lookalikes', () => {
+    for (const p of [
+      '/wp-includes/ID3/license.txt.bak',
+      '/wp-includes/license.txt',
+      '/ID3/license.txt',
+      '/wp-includes/ID3/changelog.txt',
+    ]) {
+      expect(findPatternBait(p)?.template).not.toBe('wordpress-id3-license');
+    }
+  });
+
+  it('routes wp-json/wp/v2/users/ at any depth (including double-slash prefixes)', () => {
+    for (const p of [
+      '/wp-json/wp/v2/users/',
+      '/wp-json/wp/v2/users',
+      '/blog/wp-json/wp/v2/users/',
+      '/blog//wp-json/wp/v2/users/', // scanner double-slash artifact
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cms-auth');
+      expect(m?.subcategory).toBe('wordpress-rest-users');
+      expect(m?.template).toBe('wordpress-users-api');
+    }
+  });
+
+  it('does not over-match wp-json/wp/v2/users lookalikes', () => {
+    for (const p of [
+      '/wp-json/wp/v2/users/1', // user-by-id is a different endpoint
+      '/wp-json/wp/v2/usersx',
+      '/wp-json/wp/v2/posts',
+    ]) {
+      expect(findPatternBait(p)?.template).not.toBe('wordpress-users-api');
+    }
+  });
+
+  it('routes wp-json/oembed/1.0/embed at any depth (including double-slash prefixes)', () => {
+    for (const p of [
+      '/wp-json/oembed/1.0/embed',
+      '/blog/wp-json/oembed/1.0/embed',
+      '/blog//wp-json/oembed/1.0/embed',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cms-auth');
+      expect(m?.subcategory).toBe('wordpress-fingerprint');
+      expect(m?.template).toBe('wordpress-oembed');
+    }
+  });
+
+  it('does not over-match wp-json/oembed lookalikes', () => {
+    for (const p of [
+      '/wp-json/oembed/1.0/embedx',
+      '/wp-json/oembed/1.0/proxy',
+      '/wp-json/oembed/2.0/embed',
+    ]) {
+      expect(findPatternBait(p)?.template).not.toBe('wordpress-oembed');
+    }
+  });
+
   it('routes wp-includes/wlwmanifest.xml at any depth to the WordPress fingerprint decoy', () => {
     for (const p of [
       '/wp-includes/wlwmanifest.xml',
