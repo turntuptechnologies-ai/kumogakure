@@ -7,6 +7,7 @@ import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
 import { composerJson } from './composer-json.js';
 import { cpanelLogin } from './cpanel-login.js';
+import { djangoDebugToolbar } from './django-debug-toolbar.js';
 import { djangoSettings } from './django-settings.js';
 import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
@@ -143,6 +144,7 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-id3-license': wordpressId3License,
   'wordpress-users-api': wordpressUsersApi,
   'wordpress-oembed': wordpressOembed,
+  'django-debug-toolbar': djangoDebugToolbar,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
