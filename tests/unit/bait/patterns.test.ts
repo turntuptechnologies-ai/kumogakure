@@ -528,6 +528,29 @@ describe('bait patterns', () => {
     expect(findPatternBait('/foo/console/')).toBeUndefined();
   });
 
+  it('routes Django Debug Toolbar __debug__ endpoints to the DjDT decoy', () => {
+    for (const p of [
+      '/__debug__/render_panel/',
+      '/__debug__/sql_select/',
+      '/__debug__/sql_explain/',
+      '/__debug__/template_source/',
+      '/__debug__/history_sidebar/',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cve-recon');
+      expect(m?.subcategory).toBe('django-debug-toolbar');
+      expect(m?.template).toBe('django-debug-toolbar');
+    }
+  });
+
+  it('does not over-match __debug__ lookalikes', () => {
+    // Bare `/__debug__` / `/__debug__/` (no trailing endpoint) and
+    // unrelated names must not hit the DjDT decoy.
+    for (const p of ['/__debug__', '/__debug__/', '/__debugger__/x', '/debug/default/view']) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('django-debug-toolbar');
+    }
+  });
+
   it('routes the Atlassian Jira pom.properties fingerprint path (CVE-2019-8442)', () => {
     for (const p of [
       '/s/abc123/_/;/META-INF/maven/com.atlassian.jira/jira-webapp-dist/pom.properties',

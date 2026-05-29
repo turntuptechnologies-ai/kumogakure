@@ -390,6 +390,20 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'atlassian-jira',
     template: 'jira-pom-properties',
   },
+  // Django Debug Toolbar endpoints under the `__debug__/` namespace
+  // (render_panel, sql_select, sql_explain, template_source,
+  // history_sidebar, …). DjDT shipped with DEBUG=True in production
+  // leaks SQL / settings / request data, and its sql_select /
+  // sql_explain views have historically executed attacker-influenced
+  // SQL. CWE-200 + CWE-489; no single product CVE. The `__debug__`
+  // namespace is DjDT-specific, so the broad `.+` tail is safe.
+  // Same family as the yii2-debug / laravel-telescope decoys.
+  {
+    pattern: /^\/__debug__\/.+/,
+    category: 'cve-recon',
+    subcategory: 'django-debug-toolbar',
+    template: 'django-debug-toolbar',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {
