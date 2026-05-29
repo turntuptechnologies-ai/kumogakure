@@ -1,5 +1,8 @@
 # kumogakure
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/turntuptechnologies-ai/kumogakure/actions/workflows/ci.yml/badge.svg)](https://github.com/turntuptechnologies-ai/kumogakure/actions/workflows/ci.yml)
+
 A serverless low-interaction web honeypot for Cloudflare Workers.
 
 > **kumogakure** (雲隠れ) — "hiding in the clouds", a classical ninja technique of
