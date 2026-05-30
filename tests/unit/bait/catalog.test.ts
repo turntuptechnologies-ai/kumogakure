@@ -107,6 +107,15 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('docker-registry-catalog');
   });
 
+  it('routes the Docker Registry V2 base probe (/v2/ and /v2) to the base decoy', () => {
+    for (const path of ['/v2/', '/v2']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category).toBe('api-recon');
+      expect(entry?.subcategory).toBe('docker-registry');
+      expect(entry?.template).toBe('docker-registry-base');
+    }
+  });
+
   it('routes /debug/default/view to the Yii2 Debug Toolbar decoy', () => {
     const entry = findExplicitBait('/debug/default/view');
     expect(entry?.category).toBe('cve-recon');

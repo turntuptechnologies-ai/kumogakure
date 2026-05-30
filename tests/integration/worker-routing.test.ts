@@ -42,6 +42,28 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
   });
 
+  it('answers the Docker Registry V2 base version probe at /v2/', async () => {
+    const response = await SELF.fetch('http://example.test/v2/');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('docker-distribution-api-version')).toBe('registry/2.0');
+  });
+
+  it('serves Docker Registry tag lists for advertised repositories', async () => {
+    const response = await SELF.fetch('http://example.test/v2/app/api/tags/list');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('docker-distribution-api-version')).toBe('registry/2.0');
+    const json = (await response.json()) as { name: string; tags: string[] };
+    expect(json.name).toBe('app/api');
+    expect(json.tags).toContain('latest');
+  });
+
+  it('returns NAME_UNKNOWN for Docker repositories that are not advertised', async () => {
+    const response = await SELF.fetch('http://example.test/v2/no/such-repo/tags/list');
+    expect(response.status).toBe(404);
+    const json = (await response.json()) as { errors: Array<{ code: string }> };
+    expect(json.errors[0].code).toBe('NAME_UNKNOWN');
+  });
+
   // Regression guard for the wiring added in #71: index.ts must pass
   // the already-read request body into TemplateContext, otherwise the
   // mcp / gravity-smtp templates have nothing to branch on. The mcp

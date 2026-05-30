@@ -404,6 +404,22 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'django-debug-toolbar',
     template: 'django-debug-toolbar',
   },
+  // Docker Registry HTTP API V2 tag-list endpoint
+  // (`GET /v2/<name>/tags/list`). Follow-on from the `/v2/_catalog`
+  // decoy: scanners read the catalog, then enumerate tags for each
+  // repository. The repository name is variable (one or more path
+  // segments — `app/api`, `infra/proxy`, …), so this is a pattern
+  // rather than per-repo catalog rows; the template returns canned tags
+  // for the advertised repositories and a `NAME_UNKNOWN` 404 for
+  // anything else. `/v2/` and `/v2/_catalog` are explicit catalog
+  // entries (checked first) and do not end in `/tags/list`, so they are
+  // unaffected.
+  {
+    pattern: /^\/v2\/[^/]+(?:\/[^/]+)*\/tags\/list$/,
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-tags',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {
