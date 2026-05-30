@@ -579,6 +579,44 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes Docker Registry V2 tags/list to the docker-registry decoy', () => {
+    for (const p of [
+      // All 7 observed gap paths (the repositories /v2/_catalog advertises).
+      '/v2/app/api/tags/list',
+      '/v2/app/web/tags/list',
+      '/v2/app/worker/tags/list',
+      '/v2/infra/proxy/tags/list',
+      '/v2/infra/cron/tags/list',
+      '/v2/internal/migrator/tags/list',
+      '/v2/staging/api/tags/list',
+      // Plus generic single- and deep-segment shapes (guessed repo names).
+      '/v2/singlelevel/tags/list',
+      '/v2/a/b/c/tags/list',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('api-recon');
+      expect(m?.subcategory).toBe('docker-registry');
+      expect(m?.template).toBe('docker-registry-tags');
+    }
+  });
+
+  it('does not let the tags/list pattern shadow the /v2/ base, _catalog, or other v2 verbs', () => {
+    // `/v2/` and `/v2/_catalog` are explicit catalog entries; manifests /
+    // blobs are out of scope. None end in `/tags/list`, so the pattern
+    // must leave them all unmatched.
+    for (const p of [
+      '/v2/',
+      '/v2/_catalog',
+      '/v2/app/api/manifests/latest',
+      '/v2/app/api/blobs/sha256:abc',
+      '/v2/tags',
+      '/v2/tags/list', // no repository segment
+      '/v2/app/api/tags/list/', // trailing slash — `$` anchor must reject
+    ]) {
+      expect(findPatternBait(p)?.template).not.toBe('docker-registry-tags');
+    }
+  });
+
   it('matches /.git/* paths', () => {
     expect(findPatternBait('/.git/logs/HEAD')?.category).toBe('config-leak');
   });

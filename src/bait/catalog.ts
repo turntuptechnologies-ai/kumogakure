@@ -288,6 +288,24 @@ export const explicitBait: BaitEntry[] = [
     template: 'graphql-introspection',
   },
   { path: '/api/v1/health', category: 'api-recon', subcategory: 'generic', template: 'api-health' },
+  // Docker Registry HTTP API V2 base / version-check endpoint. Open
+  // (no-auth) registries answer `GET /v2/` with `200 {}` and the
+  // `Docker-Distribution-Api-Version` header; scanners hit it first to
+  // confirm a registry is present before walking `_catalog`. Both the
+  // canonical `/v2/` and the bare `/v2` (which real registries redirect
+  // to `/v2/`) are covered so neither 404s and tips off the decoy.
+  {
+    path: '/v2/',
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-base',
+  },
+  {
+    path: '/v2',
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-base',
+  },
   // Docker Registry HTTP API V2 catalog (CWE-306 default-no-auth
   // exposure of a `registry:2` container).
   {
