@@ -621,6 +621,30 @@ describe('bait patterns', () => {
     expect(findPatternBait('/.git/logs/HEAD')?.category).toBe('config-leak');
   });
 
+  it('routes Confluence AUI Velocity templates to cve-recon/confluence (CVE-2021-26084)', () => {
+    for (const p of [
+      '/template/aui/text-inline.vm',
+      '/template/aui/label.vm',
+      '/template/aui/form-aui-message.vm',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category).toBe('cve-recon');
+      expect(m?.subcategory).toBe('confluence');
+      expect(m?.template).toBe('confluence-text-inline');
+    }
+  });
+
+  it('does not over-match outside the /template/aui/*.vm shape', () => {
+    for (const p of [
+      '/template/aui/text-inline.vm/extra',
+      '/template/aui/sub/dir.vm',
+      '/template/text-inline.vm',
+      '/template/aui/text-inline.html',
+    ]) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('confluence');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

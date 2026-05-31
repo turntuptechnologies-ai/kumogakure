@@ -436,6 +436,19 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'docker-registry',
     template: 'docker-registry-manifests',
   },
+  // Atlassian Confluence AUI Velocity templates (`/template/aui/<name>.vm`)
+  // — the unauthenticated OGNL-injection sink of CVE-2021-26084. Scanners
+  // POST a crafted `queryString` that a vulnerable server evaluates as
+  // OGNL (pre-auth RCE). `text-inline.vm` is the most sprayed; sibling
+  // AUI templates share the sink, so match the family. The template
+  // renders a plausible AUI fragment and never evaluates/reflects the
+  // payload — the probe is captured, not executed.
+  {
+    pattern: /^\/template\/aui\/[^/]+\.vm$/,
+    category: 'cve-recon',
+    subcategory: 'confluence',
+    template: 'confluence-text-inline',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {

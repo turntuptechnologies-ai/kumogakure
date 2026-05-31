@@ -83,6 +83,19 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the Confluence AUI decoy and captures the OGNL probe without reflecting it', async () => {
+    const payload = "x'%2b#{233*157}%2b'";
+    const response = await SELF.fetch('http://example.test/template/aui/text-inline.vm', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: `queryString=${payload}`,
+    });
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('aui-inline-edit');
+    expect(html).not.toContain('36581');
+  });
+
   // Regression guard for the wiring added in #71: index.ts must pass
   // the already-read request body into TemplateContext, otherwise the
   // mcp / gravity-smtp templates have nothing to branch on. The mcp

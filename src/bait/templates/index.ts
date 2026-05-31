@@ -6,6 +6,7 @@ import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
 import { composerJson } from './composer-json.js';
+import { confluenceTextInline } from './confluence-text-inline.js';
 import { cpanelLogin } from './cpanel-login.js';
 import { djangoDebugToolbar } from './django-debug-toolbar.js';
 import { djangoSettings } from './django-settings.js';
@@ -136,6 +137,7 @@ const templates: Record<string, TemplateFn> = {
   'jira-pom-properties': jiraPomProperties,
   'yii2-debug': yii2Debug,
   'cpanel-login': cpanelLogin,
+  'confluence-text-inline': confluenceTextInline,
   'whm-login': whmLogin,
   'aspnet-web-config': aspnetWebConfig,
   'dotnet-appsettings': dotnetAppsettings,
