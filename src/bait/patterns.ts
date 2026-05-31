@@ -285,6 +285,21 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'symfony-config',
     template: 'symfony-parameters-yml',
   },
+  // Symfony Web Profiler exposed in production through a shipped dev
+  // front controller. The profiler lives at `/_profiler` relative to the
+  // front controller, so scanners spray it under the dev controller
+  // (`app_dev.php`) and the public dir prefix (`web/`, `public/`):
+  // `/_profiler`, `/_profiler/open`, `/app_dev.php/_profiler`,
+  // `/web/app_dev.php/_profiler/open`, … Leaks request/session/env/DB
+  // data (CWE-200 + CWE-489); the `open` action also reads source files.
+  // Distinct subcategory from `symfony-config` (parameters.yml) — this is
+  // the debug-interface surface, parallel to laravel-telescope / yii2-debug.
+  {
+    pattern: /^\/(?:(?:web|public)\/)?(?:(?:app_dev|app|index)\.php\/)?_profiler(?:\/.*)?$/,
+    category: 'cve-recon',
+    subcategory: 'symfony-profiler',
+    template: 'symfony-profiler',
+  },
   // `docker-compose.yml` and its per-environment overrides
   // (`docker-compose.override.yml`, `.prod.yml`, `.staging.yml`, …).
   // `environment:` blocks routinely carry plaintext DATABASE_URL,

@@ -63,6 +63,7 @@ import { strutsLoginAction } from './struts-login-action.js';
 import { swaggerFake } from './swagger-fake.js';
 import { swaggerUiHtml } from './swagger-ui-html.js';
 import { symfonyParametersYml } from './symfony-parameters-yml.js';
+import { symfonyProfiler } from './symfony-profiler.js';
 import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
@@ -143,6 +144,7 @@ const templates: Record<string, TemplateFn> = {
   'dotnet-appsettings': dotnetAppsettings,
   'spring-application-yml': springApplicationYml,
   'symfony-parameters-yml': symfonyParametersYml,
+  'symfony-profiler': symfonyProfiler,
   'docker-compose-yml': dockerComposeYml,
   'django-settings': djangoSettings,
   'joomla-configuration-php': joomlaConfigurationPhp,
