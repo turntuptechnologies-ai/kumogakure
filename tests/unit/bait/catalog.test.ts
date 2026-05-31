@@ -153,6 +153,15 @@ describe('bait catalog', () => {
     }
   });
 
+  it('routes the Jira dashboard and login.jsp to the Jira login decoy', () => {
+    for (const path of ['/secure/Dashboard.jspa', '/login.jsp']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category).toBe('cms-auth');
+      expect(entry?.subcategory).toBe('atlassian-jira');
+      expect(entry?.template).toBe('jira-login');
+    }
+  });
+
   it('routes /___proxy_subdomain_whm/login to the WHM login decoy', () => {
     const entry = findExplicitBait('/___proxy_subdomain_whm/login');
     expect(entry?.category).toBe('cms-auth');
