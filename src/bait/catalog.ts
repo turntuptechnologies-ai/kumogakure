@@ -38,11 +38,49 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'cpanel',
     template: 'cpanel-login',
   },
+  // cPanel redirects the bare proxy path to `…/login`; scanners hit the
+  // `/login` form directly, so cover it too (the WHM entry below already
+  // does — this closes the asymmetry where cPanel had only the bare path).
+  {
+    path: '/___proxy_subdomain_cpanel/login',
+    category: 'cms-auth',
+    subcategory: 'cpanel',
+    template: 'cpanel-login',
+  },
   {
     path: '/___proxy_subdomain_whm/login',
     category: 'cms-auth',
     subcategory: 'whm',
     template: 'whm-login',
+  },
+  // cPanel's OpenID Connect provider initiation endpoint. The built-in
+  // "cpanelid" provider lives at `/openid_connect/<provider>`; hit
+  // without a valid flow it bounces to the cPanel login UI, so serve the
+  // same login decoy. Probed by cPanel-aware credential bots alongside
+  // the proxy-subdomain paths.
+  {
+    path: '/openid_connect/cpanelid',
+    category: 'cms-auth',
+    subcategory: 'cpanel',
+    template: 'cpanel-login',
+  },
+  // Bare `/login` — this is exactly where the cPanel login form posts
+  // (`<form action="/login" method="post">`), so a credential-stuffer
+  // that loads the decoy and submits lands here; without this entry our
+  // own decoy chain would dead-end at category=unknown on the POST.
+  // Doubles as the catch for scanners spraying the generic `/login`
+  // path. POST renders the cPanel "The login is invalid." state.
+  {
+    path: '/login',
+    category: 'cms-auth',
+    subcategory: 'cpanel',
+    template: 'cpanel-login',
+  },
+  {
+    path: '/login/',
+    category: 'cms-auth',
+    subcategory: 'cpanel',
+    template: 'cpanel-login',
   },
 
   // config-leak
