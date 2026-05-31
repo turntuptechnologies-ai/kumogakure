@@ -83,6 +83,14 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the Symfony Web Profiler decoy for a sprayed dev-controller path', async () => {
+    const response = await SELF.fetch('http://example.test/web/app_dev.php/_profiler/open');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-debug-token')).toBeTruthy();
+    const html = await response.text();
+    expect(html).toContain('Symfony Profiler');
+  });
+
   it('serves the Confluence AUI decoy and captures the OGNL probe without reflecting it', async () => {
     const payload = "x'%2b#{233*157}%2b'";
     const response = await SELF.fetch('http://example.test/template/aui/text-inline.vm', {

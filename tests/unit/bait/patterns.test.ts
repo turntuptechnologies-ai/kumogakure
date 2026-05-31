@@ -645,6 +645,29 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes Symfony Web Profiler paths to cve-recon/symfony-profiler', () => {
+    for (const p of [
+      '/_profiler',
+      '/_profiler/open',
+      '/_profiler/a3f9c1',
+      '/app_dev.php/_profiler',
+      '/app_dev.php/_profiler/open',
+      '/web/app_dev.php/_profiler/open',
+      '/public/index.php/_profiler',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('symfony-profiler');
+      expect(m?.template, p).toBe('symfony-profiler');
+    }
+  });
+
+  it('does not over-match non-profiler paths that merely contain the word', () => {
+    for (const p of ['/_profiler_foo', '/foo/_profiler', '/profiler', '/api/_profilers']) {
+      expect(findPatternBait(p)?.subcategory).not.toBe('symfony-profiler');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
