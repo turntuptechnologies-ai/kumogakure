@@ -420,6 +420,22 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'docker-registry',
     template: 'docker-registry-tags',
   },
+  // Docker Registry HTTP API V2 manifest endpoint
+  // (`GET /v2/<name>/manifests/<reference>`). Last hop of the registry
+  // probe chain: scanners read `_catalog`, enumerate `tags/list`, then
+  // pull each tag's manifest to inventory the image. The repository name
+  // is variable (one or more segments) and the reference is a single
+  // segment (a tag or a `sha256:…` digest, neither of which contains a
+  // slash), so this is a pattern rather than per-repo catalog rows. The
+  // template serves a schema-2 manifest for the advertised (repo, tag)
+  // pairs and a `MANIFEST_UNKNOWN` 404 otherwise. Distinct `/manifests/`
+  // suffix means it never overlaps the `/tags/list` entry above.
+  {
+    pattern: /^\/v2\/[^/]+(?:\/[^/]+)*\/manifests\/[^/]+$/,
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-manifests',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {

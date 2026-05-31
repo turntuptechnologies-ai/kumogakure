@@ -64,6 +64,25 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('NAME_UNKNOWN');
   });
 
+  it('serves a schema-2 manifest for an advertised Docker tag', async () => {
+    const response = await SELF.fetch('http://example.test/v2/app/api/manifests/latest');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe(
+      'application/vnd.docker.distribution.manifest.v2+json',
+    );
+    expect(response.headers.get('docker-content-digest')).toMatch(/^sha256:[0-9a-f]{64}$/);
+    const json = (await response.json()) as { schemaVersion: number; layers: unknown[] };
+    expect(json.schemaVersion).toBe(2);
+    expect(json.layers.length).toBeGreaterThan(0);
+  });
+
+  it('returns MANIFEST_UNKNOWN for a Docker tag that is not advertised', async () => {
+    const response = await SELF.fetch('http://example.test/v2/app/api/manifests/v9.9.9');
+    expect(response.status).toBe(404);
+    const json = (await response.json()) as { errors: Array<{ code: string }> };
+    expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
+  });
+
   // Regression guard for the wiring added in #71: index.ts must pass
   // the already-read request body into TemplateContext, otherwise the
   // mcp / gravity-smtp templates have nothing to branch on. The mcp
