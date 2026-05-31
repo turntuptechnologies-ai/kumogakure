@@ -12,6 +12,7 @@ import { djangoSettings } from './django-settings.js';
 import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryBase } from './docker-registry-base.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
+import { dockerRegistryManifests } from './docker-registry-manifests.js';
 import { dockerRegistryTags } from './docker-registry-tags.js';
 import { dotnetAppsettings } from './dotnet-appsettings.js';
 import { drupalLogin } from './drupal-login.js';
@@ -130,6 +131,7 @@ const templates: Record<string, TemplateFn> = {
   'exchange-exporttool': exchangeExporttool,
   'docker-registry-base': dockerRegistryBase,
   'docker-registry-catalog': dockerRegistryCatalog,
+  'docker-registry-manifests': dockerRegistryManifests,
   'docker-registry-tags': dockerRegistryTags,
   'jira-pom-properties': jiraPomProperties,
   'yii2-debug': yii2Debug,
