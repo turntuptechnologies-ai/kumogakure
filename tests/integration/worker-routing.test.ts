@@ -83,6 +83,14 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the Jira login decoy at /secure/Dashboard.jspa', async () => {
+    const response = await SELF.fetch('http://example.test/secure/Dashboard.jspa');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('x-ausername')).toBe('anonymous');
+    const html = await response.text();
+    expect(html).toContain('name="os_username"');
+  });
+
   it('serves the Symfony Web Profiler decoy for a sprayed dev-controller path', async () => {
     const response = await SELF.fetch('http://example.test/web/app_dev.php/_profiler/open');
     expect(response.status).toBe(200);

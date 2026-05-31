@@ -82,6 +82,26 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'cpanel',
     template: 'cpanel-login',
   },
+  // Atlassian Jira authenticated dashboard entry point. Anonymous access
+  // bounces to the Jira login gadget, so this is a high-signal Jira
+  // product/version fingerprint — scanners confirm Jira, then target its
+  // CVE surface (CVE-2019-11581 SSTI, CVE-2020-14179 Dashboard info
+  // disclosure, CVE-2022-0540 auth bypass). `/login.jsp` is where the
+  // served form posts, so it shares the decoy (otherwise a submit would
+  // dead-end at unknown). Same `atlassian-jira` subcategory as the
+  // jira-pom-properties version decoy.
+  {
+    path: '/secure/Dashboard.jspa',
+    category: 'cms-auth',
+    subcategory: 'atlassian-jira',
+    template: 'jira-login',
+  },
+  {
+    path: '/login.jsp',
+    category: 'cms-auth',
+    subcategory: 'atlassian-jira',
+    template: 'jira-login',
+  },
 
   // config-leak
   { path: '/.env', category: 'config-leak', subcategory: 'dotenv', template: 'fake-env' },

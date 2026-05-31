@@ -46,6 +46,7 @@ import { gitlabSignIn } from './gitlab-sign-in.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
 import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
+import { jiraLogin } from './jira-login.js';
 import { jiraPomProperties } from './jira-pom-properties.js';
 import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
@@ -135,6 +136,7 @@ const templates: Record<string, TemplateFn> = {
   'docker-registry-catalog': dockerRegistryCatalog,
   'docker-registry-manifests': dockerRegistryManifests,
   'docker-registry-tags': dockerRegistryTags,
+  'jira-login': jiraLogin,
   'jira-pom-properties': jiraPomProperties,
   'yii2-debug': yii2Debug,
   'cpanel-login': cpanelLogin,
