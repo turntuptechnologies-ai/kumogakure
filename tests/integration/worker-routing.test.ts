@@ -83,6 +83,22 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the GraphQL introspection decoy for a non-root graphql mount', async () => {
+    const response = await SELF.fetch('http://example.test/api/graphql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query: '{__schema{queryType{name}}}' }),
+    });
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { data?: { __schema?: unknown } };
+    expect(json.data?.__schema).toBeDefined();
+  });
+
+  it('serves the xmlrpc decoy for a doubled-slash subdir path', async () => {
+    const response = await SELF.fetch('http://example.test/blog//xmlrpc.php', { method: 'POST' });
+    expect(response.status).toBe(200);
+  });
+
   it('serves the WordPress REST content decoy for wp/v2/posts', async () => {
     const response = await SELF.fetch('http://example.test/wp-json/wp/v2/posts');
     expect(response.status).toBe(200);
