@@ -14,6 +14,15 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'wordpress',
     template: 'wordpress-xmlrpc',
   },
+  // Yoast SEO / Rank Math author sitemap — lists one `/author/<slug>/`
+  // URL per account, leaking the username-slug set (credential-stuffing
+  // input), same threat as the core `wp-sitemap-users-<n>.xml` pattern.
+  {
+    path: '/author-sitemap.xml',
+    category: 'cms-auth',
+    subcategory: 'wordpress-user-sitemap',
+    template: 'wordpress-user-sitemap',
+  },
   {
     path: '/administrator/index.php',
     category: 'cms-auth',

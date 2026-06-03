@@ -213,6 +213,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('composer-json');
   });
 
+  it('routes /author-sitemap.xml to the WordPress user-sitemap decoy', () => {
+    const entry = findExplicitBait('/author-sitemap.xml');
+    expect(entry?.category).toBe('cms-auth');
+    expect(entry?.subcategory).toBe('wordpress-user-sitemap');
+    expect(entry?.template).toBe('wordpress-user-sitemap');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

@@ -668,6 +668,44 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes WordPress plugin user/member enumeration endpoints to wordpress-plugin-users', () => {
+    for (const p of [
+      '/wp-json/tutor/v1/students',
+      '/wp-json/ldlms/v2/users',
+      '/wp-json/bbp-api/v1/users',
+      '/wp-json/youzer/v1/members',
+      '/wp-json/peepso/v1/members',
+      '/wp-json/wpuf/v1/users',
+      '/wp-json/lp/v1/users',
+      '/wp-json/learnpress/v1/users',
+      '/wp-json/buddyboss/v1/members',
+      '/wp-json/buddypress/v1/members',
+      '/wp-json/um/v1/users',
+      '/wp-json/ultimate-member/v1/users',
+      '/blog/wp-json/buddypress/v1/members', // any-depth prefix
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-rest-users');
+      expect(m?.template, p).toBe('wordpress-plugin-users');
+    }
+  });
+
+  it('does not match wp-json plugin namespaces outside the allowlist', () => {
+    for (const p of ['/wp-json/acme/v1/users', '/wp-json/tutor/v1/courses']) {
+      expect(findPatternBait(p)?.template).not.toBe('wordpress-plugin-users');
+    }
+  });
+
+  it('routes the core user sitemap to wordpress-user-sitemap', () => {
+    for (const p of ['/wp-sitemap-users-1.xml', '/wp-sitemap-users-2.xml']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-user-sitemap');
+      expect(m?.template, p).toBe('wordpress-user-sitemap');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
