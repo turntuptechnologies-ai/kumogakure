@@ -706,6 +706,33 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes WordPress core REST content collections to wordpress-rest-content', () => {
+    for (const p of [
+      '/wp-json/wp/v2/posts',
+      '/wp-json/wp/v2/comments',
+      '/wp-json/wp/v2/media',
+      '/wp-json/wp/v2/pages',
+      '/wp-json/wp/v2/categories',
+      '/wp-json/wp/v2/tags',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-rest-content');
+      expect(m?.template, p).toBe('wordpress-rest-content');
+    }
+  });
+
+  it('routes the wp-json REST index to wordpress-rest-root without shadowing specific routes', () => {
+    for (const p of ['/wp-json', '/wp-json/', '/blog/wp-json/']) {
+      const m = findPatternBait(p);
+      expect(m?.subcategory, p).toBe('wordpress-fingerprint');
+      expect(m?.template, p).toBe('wordpress-rest-root');
+    }
+    // specific routes still win over the index
+    expect(findPatternBait('/wp-json/wp/v2/posts')?.template).toBe('wordpress-rest-content');
+    expect(findPatternBait('/wp-json/wp/v2/users')?.template).toBe('wordpress-users-api');
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

@@ -76,6 +76,27 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wordpress-user-sitemap',
     template: 'wordpress-user-sitemap',
   },
+  // WordPress core REST content collections (`wp-json/wp/v2/<type>`):
+  // posts, pages, comments, media, categories, tags. Public on default
+  // permissions; leak content and (posts/media) the authoring user id.
+  // Allowlisted collection names; the template serves a small plausible
+  // set per type and `[]` otherwise.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/wp\/v2\/(?:posts|pages|comments|media|categories|tags)\/?$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-rest-content',
+    template: 'wordpress-rest-content',
+  },
+  // WordPress REST API index at `wp-json/` (and bare `wp-json`) — the
+  // discovery endpoint scanners hit first to confirm WP REST and learn
+  // the namespaces/routes. Matches only the index itself (nothing after
+  // `wp-json`), so it never shadows the specific routes above.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/?$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'wordpress-rest-root',
+  },
   // WordPress REST API `wp-json/oembed/1.0/embed` — fingerprint probe
   // that records "WP REST is reachable". Real WP returns 400 with
   // `rest_missing_callback_param` when `?url=` is absent, which is the
