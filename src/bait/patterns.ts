@@ -513,6 +513,29 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'confluence',
     template: 'confluence-text-inline',
   },
+  // GraphQL endpoints mounted at non-root paths — scanners POST an
+  // introspection query to enumerate the schema wherever the API lives
+  // (`/api/graphql`, `/wp-json/wp/v2/graphql`, …). Root `/graphql` is the
+  // explicit catalog entry (checked first); this covers the rest. Final
+  // `graphql` segment only, so it does not collide with the WP REST
+  // routes above (none ends in `graphql`). Same introspection decoy.
+  {
+    pattern: /^\/(?:[^/]+\/+)*graphql$/,
+    category: 'api-recon',
+    subcategory: 'graphql',
+    template: 'graphql-introspection',
+  },
+  // WordPress XML-RPC at any depth / with doubled slashes
+  // (`/blog//xmlrpc.php`, `/sub/xmlrpc.php`). Root `/xmlrpc.php` is the
+  // explicit catalog entry (checked first); the `[^/]+\/+` prefix mirrors
+  // the wp-json patterns' tolerance for scanner-emitted `//`. Same
+  // pingback / system.multicall amplification + brute-force surface.
+  {
+    pattern: /^\/(?:[^/]+\/+)*xmlrpc\.php$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress',
+    template: 'wordpress-xmlrpc',
+  },
 ];
 
 export function findPatternBait(path: string): PatternEntry | undefined {

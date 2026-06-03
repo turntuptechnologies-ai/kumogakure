@@ -733,6 +733,24 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-json/wp/v2/users')?.template).toBe('wordpress-users-api');
   });
 
+  it('routes non-root GraphQL endpoints to the introspection decoy', () => {
+    for (const p of ['/api/graphql', '/wp-json/wp/v2/graphql', '/v1/graphql']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('api-recon');
+      expect(m?.subcategory, p).toBe('graphql');
+      expect(m?.template, p).toBe('graphql-introspection');
+    }
+  });
+
+  it('routes WordPress xmlrpc.php at any depth (incl. doubled slash) to the xmlrpc decoy', () => {
+    for (const p of ['/blog//xmlrpc.php', '/sub/xmlrpc.php', '/a/b/xmlrpc.php']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress');
+      expect(m?.template, p).toBe('wordpress-xmlrpc');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
