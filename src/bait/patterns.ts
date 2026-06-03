@@ -48,6 +48,34 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wordpress-rest-users',
     template: 'wordpress-users-api',
   },
+  // User/member enumeration via WordPress membership / LMS / community
+  // plugins, which register their own `wp-json/<plugin>/<ver>/` routes:
+  // BuddyPress / BuddyBoss / PeepSo / Youzer / Ultimate Member
+  // (`um`|`ultimate-member`) `/members`, LearnDash (`ldlms`), LearnPress
+  // (`lp`|`learnpress`), WP User Frontend (`wpuf`), bbPress (`bbp-api`)
+  // `/users`, and Tutor LMS `/students`. Same default-permissions account
+  // leak as core `wp/v2/users`, so the same threat model / subcategory.
+  // Namespace allowlist (not a wildcard) to avoid matching unrelated
+  // plugin routes; `[^/]+\/+` prefix mirrors the core pattern's any-depth
+  // handling (e.g. `/blog/wp-json/...`).
+  {
+    pattern:
+      /^\/(?:[^/]+\/+)*wp-json\/(?:tutor|ldlms|bbp-api|youzer|peepso|wpuf|lp|learnpress|buddyboss|buddypress|um|ultimate-member)\/v[0-9]+\/(?:users|members|students)\/?$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-rest-users',
+    template: 'wordpress-plugin-users',
+  },
+  // WordPress user-enumeration sitemaps: core (5.5+) paginated user
+  // sitemap `/wp-sitemap-users-<n>.xml`. Lists one `/author/<slug>/` URL
+  // per account — the same username-slug leak as `wp/v2/users`, via XML.
+  // The Yoast/Rank Math `/author-sitemap.xml` equivalent is an explicit
+  // catalog entry (fixed name). Both serve the wordpress-user-sitemap decoy.
+  {
+    pattern: /^\/wp-sitemap-users-[0-9]+\.xml$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-user-sitemap',
+    template: 'wordpress-user-sitemap',
+  },
   // WordPress REST API `wp-json/oembed/1.0/embed` — fingerprint probe
   // that records "WP REST is reachable". Real WP returns 400 with
   // `rest_missing_callback_param` when `?url=` is absent, which is the

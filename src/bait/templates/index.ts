@@ -70,6 +70,8 @@ import { whmLogin } from './whm-login.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
+import { wordpressPluginUsers } from './wordpress-plugin-users.js';
+import { wordpressUserSitemap } from './wordpress-user-sitemap.js';
 import { wordpressUsersApi } from './wordpress-users-api.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
 import { yii2Debug } from './yii2-debug.js';
@@ -155,6 +157,8 @@ const templates: Record<string, TemplateFn> = {
   'composer-json': composerJson,
   'wordpress-id3-license': wordpressId3License,
   'wordpress-users-api': wordpressUsersApi,
+  'wordpress-plugin-users': wordpressPluginUsers,
+  'wordpress-user-sitemap': wordpressUserSitemap,
   'wordpress-oembed': wordpressOembed,
   'django-debug-toolbar': djangoDebugToolbar,
 };

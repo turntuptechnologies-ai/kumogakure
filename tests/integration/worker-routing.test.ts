@@ -83,6 +83,20 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the plugin user-enumeration decoy for a membership-plugin REST route', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/buddypress/v1/members');
+    expect(response.status).toBe(200);
+    const list = (await response.json()) as Array<{ slug: string }>;
+    expect(list.map((m) => m.slug)).toContain('editor');
+  });
+
+  it('serves the user-sitemap decoy at /wp-sitemap-users-1.xml', async () => {
+    const response = await SELF.fetch('http://example.test/wp-sitemap-users-1.xml');
+    expect(response.status).toBe(200);
+    const xml = await response.text();
+    expect(xml).toContain('/author/editor/');
+  });
+
   it('serves the Jira login decoy at /secure/Dashboard.jspa', async () => {
     const response = await SELF.fetch('http://example.test/secure/Dashboard.jspa');
     expect(response.status).toBe(200);
