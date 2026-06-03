@@ -71,6 +71,8 @@ import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
 import { wordpressPluginUsers } from './wordpress-plugin-users.js';
+import { wordpressRestContent } from './wordpress-rest-content.js';
+import { wordpressRestRoot } from './wordpress-rest-root.js';
 import { wordpressUserSitemap } from './wordpress-user-sitemap.js';
 import { wordpressUsersApi } from './wordpress-users-api.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
@@ -159,6 +161,8 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-users-api': wordpressUsersApi,
   'wordpress-plugin-users': wordpressPluginUsers,
   'wordpress-user-sitemap': wordpressUserSitemap,
+  'wordpress-rest-content': wordpressRestContent,
+  'wordpress-rest-root': wordpressRestRoot,
   'wordpress-oembed': wordpressOembed,
   'django-debug-toolbar': djangoDebugToolbar,
 };

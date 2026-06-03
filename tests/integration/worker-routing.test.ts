@@ -83,6 +83,20 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the WordPress REST content decoy for wp/v2/posts', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/wp/v2/posts');
+    expect(response.status).toBe(200);
+    const posts = (await response.json()) as Array<{ author: number }>;
+    expect(posts[0]?.author).toBe(1);
+  });
+
+  it('serves the WordPress REST index decoy at /wp-json/', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/');
+    expect(response.status).toBe(200);
+    const index = (await response.json()) as { namespaces: string[] };
+    expect(index.namespaces).toContain('wp/v2');
+  });
+
   it('serves the plugin user-enumeration decoy for a membership-plugin REST route', async () => {
     const response = await SELF.fetch('http://example.test/wp-json/buddypress/v1/members');
     expect(response.status).toBe(200);
