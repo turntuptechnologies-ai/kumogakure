@@ -751,6 +751,18 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes wp/v2/users/me to the current-user decoy, distinct from the users collection', () => {
+    for (const p of ['/wp-json/wp/v2/users/me', '/blog/wp-json/wp/v2/users/me']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-rest-users');
+      expect(m?.template, p).toBe('wordpress-users-me');
+    }
+    // the collection endpoint still routes to the list decoy
+    expect(findPatternBait('/wp-json/wp/v2/users')?.template).toBe('wordpress-users-api');
+    expect(findPatternBait('/wp-json/wp/v2/users/')?.template).toBe('wordpress-users-api');
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

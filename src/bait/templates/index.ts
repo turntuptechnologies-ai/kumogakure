@@ -75,6 +75,7 @@ import { wordpressRestContent } from './wordpress-rest-content.js';
 import { wordpressRestRoot } from './wordpress-rest-root.js';
 import { wordpressUserSitemap } from './wordpress-user-sitemap.js';
 import { wordpressUsersApi } from './wordpress-users-api.js';
+import { wordpressUsersMe } from './wordpress-users-me.js';
 import { wordpressXmlrpc } from './wordpress-xmlrpc.js';
 import { yii2Debug } from './yii2-debug.js';
 
@@ -159,6 +160,7 @@ const templates: Record<string, TemplateFn> = {
   'composer-json': composerJson,
   'wordpress-id3-license': wordpressId3License,
   'wordpress-users-api': wordpressUsersApi,
+  'wordpress-users-me': wordpressUsersMe,
   'wordpress-plugin-users': wordpressPluginUsers,
   'wordpress-user-sitemap': wordpressUserSitemap,
   'wordpress-rest-content': wordpressRestContent,
