@@ -763,6 +763,18 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-json/wp/v2/users/')?.template).toBe('wordpress-users-api');
   });
 
+  it('routes the ownCloud graphapi GetPhpInfo.php (CVE-2023-49103) to the phpinfo decoy', () => {
+    for (const p of [
+      '/owncloud/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',
+      '/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('owncloud');
+      expect(m?.template, p).toBe('phpinfo');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

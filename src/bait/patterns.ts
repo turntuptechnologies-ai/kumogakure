@@ -240,6 +240,19 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'phpinfo',
     template: 'phpinfo',
   },
+  // ownCloud graphapi phpinfo disclosure — CVE-2023-49103. The bundled
+  // microsoft-graph test script `…/tests/GetPhpInfo.php` calls phpinfo()
+  // pre-auth, leaking env vars (which on the ownCloud Docker image carry
+  // admin creds, mail, S3/object-store keys). Mass-exploited. Optional
+  // `owncloud/` prefix covers both the root and subdir mount points
+  // scanners try. Reuses the phpinfo decoy — exactly what the CVE leaks.
+  {
+    pattern:
+      /^\/(?:owncloud\/)?apps\/graphapi\/vendor\/microsoft\/microsoft-graph\/tests\/GetPhpInfo\.php$/,
+    category: 'cve-recon',
+    subcategory: 'owncloud',
+    template: 'phpinfo',
+  },
   // Git home-dir dotfiles at any depth (/root/, /home/<user>/, web
   // root). Distinct from the .git/ repo family below; final segment
   // must be exactly the dotfile name. .git-credentials is split to its

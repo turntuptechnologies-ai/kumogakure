@@ -99,6 +99,15 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
   });
 
+  it('serves the phpinfo decoy for the ownCloud graphapi CVE-2023-49103 path', async () => {
+    const response = await SELF.fetch(
+      'http://example.test/owncloud/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',
+    );
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html.toLowerCase()).toContain('phpinfo');
+  });
+
   it('returns the WordPress 401 rest_not_logged_in decoy for wp/v2/users/me', async () => {
     const response = await SELF.fetch('http://example.test/wp-json/wp/v2/users/me');
     expect(response.status).toBe(401);
