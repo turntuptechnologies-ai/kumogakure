@@ -99,6 +99,17 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
   });
 
+  it('serves the js-config decoy for /config.js and the ..;/ traversal env form', async () => {
+    const cfg = await SELF.fetch('http://example.test/config.js');
+    expect(cfg.status).toBe(200);
+    expect(cfg.headers.get('content-type')).toContain('javascript');
+    expect(await cfg.text()).toContain('__APP_CONFIG__');
+
+    const env = await SELF.fetch('http://example.test/..;/env.js');
+    expect(env.status).toBe(200);
+    expect(await env.text()).toContain('apiBaseUrl');
+  });
+
   it('serves the phpinfo decoy for the ownCloud graphapi CVE-2023-49103 path', async () => {
     const response = await SELF.fetch(
       'http://example.test/owncloud/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',

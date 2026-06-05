@@ -775,6 +775,49 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes front-end config.js / env*.js (incl. ..;/ traversal) to the js-config decoy', () => {
+    for (const p of [
+      '/config.js',
+      '/app/config.js',
+      '/api/config.js',
+      '/config/config.js',
+      '/web/config.js',
+      '/src/config.js',
+      '/src/api/config.js',
+      '/web/api/config.js',
+      '/public/config.js',
+      '/public/js/config.js',
+      '/static/config.js',
+      '/static/js/config.js',
+      '/env.js',
+      '/env.dev.js',
+      '/env.development.js',
+      '/env.prod.js',
+      '/env.production.js',
+      '/..;/env.js',
+      '/..;/env.development.js',
+      '/..;/env.production.js',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('js-config');
+      expect(m?.template, p).toBe('fake-js-config');
+    }
+  });
+
+  it('does not over-match generic bundles or config.js look-alikes', () => {
+    for (const p of [
+      '/myconfig.js',
+      '/environment.js',
+      '/index.js',
+      '/main.js',
+      '/app.js',
+      '/configuration.js',
+    ]) {
+      expect(findPatternBait(p)?.subcategory, p).not.toBe('js-config');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
