@@ -205,6 +205,26 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'cakephp-debugkit',
     template: 'fake-env',
   },
+  // Front-end runtime-config / env JavaScript that SPAs ship — `config.js`
+  // and `env[.<environment>].js` at the root or under js/static/api/...
+  // dirs — routinely embed backend URLs and API keys in cleartext.
+  // Scanners sweep the well-known names looking for harvestable secrets.
+  // The any-depth `[^/]+\/+` prefix also covers the `..;/`-traversal forms
+  // (`/..;/env.js`) that bypass servlet path normalisation, since `..;`
+  // is a normal non-slash segment to URL parsing. Served the fake-js-config
+  // decoy (non-actionable decoy secrets).
+  {
+    pattern: /^\/(?:[^/]+\/+)*config\.js$/,
+    category: 'config-leak',
+    subcategory: 'js-config',
+    template: 'fake-js-config',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/+)*env(?:\.[a-z]+)?\.js$/,
+    category: 'config-leak',
+    subcategory: 'js-config',
+    template: 'fake-js-config',
+  },
   // MCP servers (JSON-RPC 2.0 over the Streamable HTTP transport) are
   // mounted at varied paths; scanners enumerate the common ones. /mcp
   // itself is the explicit catalog entry (checked first); these cover
