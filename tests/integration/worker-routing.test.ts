@@ -99,6 +99,13 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
   });
 
+  it('returns the WordPress 401 rest_not_logged_in decoy for wp/v2/users/me', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/wp/v2/users/me');
+    expect(response.status).toBe(401);
+    const json = (await response.json()) as { code: string };
+    expect(json.code).toBe('rest_not_logged_in');
+  });
+
   it('serves the WordPress REST content decoy for wp/v2/posts', async () => {
     const response = await SELF.fetch('http://example.test/wp-json/wp/v2/posts');
     expect(response.status).toBe(200);

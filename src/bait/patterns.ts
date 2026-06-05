@@ -42,6 +42,18 @@ export const patternBait: PatternEntry[] = [
   // scanners then feed into credential-stuffing. Distinct subcategory
   // from `wordpress-fingerprint` because the threat model is user
   // enumeration, not version detection.
+  // WordPress REST `wp-json/wp/v2/users/me` — the current-user endpoint.
+  // Requires auth, so an unauthenticated probe gets a 401
+  // `rest_not_logged_in`; scanners hammer it as a WP-REST fingerprint and
+  // to spot leaked sessions / auth bypass. Matched ahead of the `users`
+  // collection below (distinct `/me` suffix; the collection pattern ends
+  // at `users/?$` and would not match anyway).
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/wp\/v2\/users\/me$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-rest-users',
+    template: 'wordpress-users-me',
+  },
   {
     pattern: /^\/(?:[^/]+\/+)*wp-json\/wp\/v2\/users\/?$/,
     category: 'cms-auth',
