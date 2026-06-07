@@ -818,6 +818,76 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes the full FTP/SFTP credential-config sweep to fake-ftp-config', () => {
+    for (const p of [
+      // base + separators + qualifiers
+      '/sftp.json',
+      '/ftp.json',
+      '/ftps.json',
+      '/sftp-config.json',
+      '/ftp-config.json',
+      '/sftp_config.json',
+      '/ftp_config.json',
+      '/sftp.config.json',
+      '/ftp.config.json',
+      '/sftp-settings.json',
+      '/ftp_settings.json',
+      // non-json extensions
+      '/sftp.js',
+      '/ftp.config.js',
+      '/sftp.yaml',
+      '/ftp.yml',
+      '/sftp.xml',
+      '/ftp.ini',
+      '/sftp.conf',
+      '/ftp.txt',
+      '/ftp.config',
+      '/sftp.config',
+      // secondary suffixes
+      '/sftp.json.example',
+      '/ftp.json.dist',
+      '/sftp.json.default',
+      '/ftp.json.template',
+      '/sftp.json.bak1',
+      // env / version infixes
+      '/sftp.dev.json',
+      '/ftp.prod.json',
+      '/sftp.staging.json',
+      '/ftp.local.json',
+      '/sftp-v1.json',
+      '/ftp_v2.json',
+      '/sftp.1.json',
+      '/ftp.2.json',
+      // prefixes and dirs
+      '/_sftp.json',
+      '/.ftp.json',
+      '/app.sftp.json',
+      '/project.ftp.json',
+      '/public/ftp.json',
+      '/static/sftp.json',
+      // case variants
+      '/FTP.json',
+      '/Sftp.json',
+      '/SFTP-CONFIG.json',
+      // bare names and dotfiles (pattern 2)
+      '/ftpconfig',
+      '/sftpsettings',
+      '/.ftprc',
+      '/.sftpconfig',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('ftp-credentials');
+      expect(m?.template, p).toBe('fake-ftp-config');
+    }
+  });
+
+  it('does not over-match generic config or non-ftp names', () => {
+    for (const p of ['/config.json', '/configuration.json', '/draft.json', '/main.js', '/ftp']) {
+      expect(findPatternBait(p)?.subcategory, p).not.toBe('ftp-credentials');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

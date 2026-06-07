@@ -225,6 +225,31 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'js-config',
     template: 'fake-js-config',
   },
+  // FTP/SFTP deploy-credential config files — scanners spray dozens of
+  // naming/extension variants hunting for host/user/password in cleartext
+  // (CWE-200 / CWE-538). Two patterns cover the family (case-insensitive
+  // for `FTP.json` / `Sftp.json` etc.):
+  //   1. an ftp/sftp(/ftps) basename — with optional `app.` / `project.` /
+  //      `_` / `.` prefixes and `-config` / `.settings` / `.dev` / `-v1` /
+  //      … qualifiers — ending in a config extension, plus a trailing
+  //      `.template` / `.dist` / `.example` / `.bak<n>` etc.
+  //   2. extensionless bare names (`ftpconfig`, `sftpsettings`) and rc /
+  //      dotfile forms (`.ftprc`, `.sftpconfig`).
+  // Served the fake-ftp-config decoy (format-appropriate fake creds,
+  // reusing the .vscode/sftp.json values).
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*[._]?(?:[a-z0-9]+[._-])*s?ftps?(?:[._-][a-z0-9]+)*\.(?:json|js|ya?ml|xml|ini|conf|config|txt)(?:\.(?:template|default|dist|example|bak\d*))?$/i,
+    category: 'config-leak',
+    subcategory: 'ftp-credentials',
+    template: 'fake-ftp-config',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*(?:\.s?ftps?(?:config|rc)?|s?ftps?(?:config|settings))$/i,
+    category: 'config-leak',
+    subcategory: 'ftp-credentials',
+    template: 'fake-ftp-config',
+  },
   // MCP servers (JSON-RPC 2.0 over the Streamable HTTP transport) are
   // mounted at varied paths; scanners enumerate the common ones. /mcp
   // itself is the explicit catalog entry (checked first); these cover

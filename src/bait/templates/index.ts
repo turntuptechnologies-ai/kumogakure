@@ -24,6 +24,7 @@ import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeBoto } from './fake-boto.js';
 import { fakeEnv } from './fake-env.js';
+import { fakeFtpConfig } from './fake-ftp-config.js';
 import { fakeGcpServiceAccountKey } from './fake-gcp-service-account-key.js';
 import { fakeGitConfig } from './fake-git-config.js';
 import { fakeGitCredentials } from './fake-git-credentials.js';
@@ -123,6 +124,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-aws-config': fakeAwsConfig,
   'fake-s3cfg': fakeS3cfg,
   'fake-boto': fakeBoto,
+  'fake-ftp-config': fakeFtpConfig,
   'fake-netrc': fakeNetrc,
   'fake-npmrc': fakeNpmrc,
   'fake-pypirc': fakePypirc,

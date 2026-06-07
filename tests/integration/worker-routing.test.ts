@@ -99,6 +99,19 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
   });
 
+  it('serves the FTP/SFTP credential decoy across naming/format variants', async () => {
+    const json = await SELF.fetch('http://example.test/sftp.json');
+    expect(json.status).toBe(200);
+    expect(((await json.json()) as { password: string }).password).toBe('REDACTED_FOR_HONEYPOT');
+
+    const yaml = await SELF.fetch('http://example.test/ftp.prod.yml');
+    expect(yaml.status).toBe(200);
+    expect(yaml.headers.get('content-type')).toContain('yaml');
+
+    const dotfile = await SELF.fetch('http://example.test/.ftpconfig');
+    expect(dotfile.status).toBe(200);
+  });
+
   it('serves the js-config decoy for /config.js and the ..;/ traversal env form', async () => {
     const cfg = await SELF.fetch('http://example.test/config.js');
     expect(cfg.status).toBe(200);
