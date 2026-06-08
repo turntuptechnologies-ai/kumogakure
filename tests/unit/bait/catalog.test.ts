@@ -169,6 +169,15 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('whm-login');
   });
 
+  it('routes the bare /whm path (and trailing slash) to the WHM login decoy', () => {
+    for (const path of ['/whm', '/whm/']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category).toBe('cms-auth');
+      expect(entry?.subcategory).toBe('whm');
+      expect(entry?.template).toBe('whm-login');
+    }
+  });
+
   it('routes /web.config to the ASP.NET web.config decoy', () => {
     const entry = findExplicitBait('/web.config');
     expect(entry?.category).toBe('config-leak');
