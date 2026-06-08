@@ -62,6 +62,21 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'whm',
     template: 'whm-login',
   },
+  // Bare `/whm` (and trailing-slash variant) — the canonical WHM entry
+  // path scanners probe directly; real WHM bounces it to the login UI, so
+  // serve the same decoy as the proxy-subdomain form above.
+  {
+    path: '/whm',
+    category: 'cms-auth',
+    subcategory: 'whm',
+    template: 'whm-login',
+  },
+  {
+    path: '/whm/',
+    category: 'cms-auth',
+    subcategory: 'whm',
+    template: 'whm-login',
+  },
   // cPanel's OpenID Connect provider initiation endpoint. The built-in
   // "cpanelid" provider lives at `/openid_connect/<provider>`; hit
   // without a valid flow it bounces to the cPanel login UI, so serve the

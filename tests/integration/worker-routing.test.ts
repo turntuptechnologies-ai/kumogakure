@@ -167,6 +167,13 @@ describe('Worker routing', () => {
     expect(xml).toContain('/author/editor/');
   });
 
+  it('serves the WHM login decoy at the bare /whm path', async () => {
+    const response = await SELF.fetch('http://example.test/whm');
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html.length).toBeGreaterThan(0);
+  });
+
   it('serves the Jira login decoy at /secure/Dashboard.jspa', async () => {
     const response = await SELF.fetch('http://example.test/secure/Dashboard.jspa');
     expect(response.status).toBe(200);
