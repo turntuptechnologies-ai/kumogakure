@@ -167,6 +167,31 @@ describe('Worker routing', () => {
     expect(xml).toContain('/author/editor/');
   });
 
+  it('serves the Next.js Server Action decoy when the Next-Action header is present', async () => {
+    const response = await SELF.fetch('http://example.test/', {
+      method: 'POST',
+      headers: {
+        'next-action': '8eb0e5ed8819659b579d2bda3de1ddd5f0b59413',
+        'content-type': 'text/plain',
+      },
+      body: 'x',
+    });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('text/x-component');
+    expect(await response.text()).toMatch(/^0:\{/);
+  });
+
+  it('lets a known path win over the Next-Action header (path matched first)', async () => {
+    const response = await SELF.fetch('http://example.test/wp-login.php', {
+      method: 'POST',
+      headers: { 'next-action': 'abc' },
+      body: 'x',
+    });
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('name="log"'); // wordpress-login, not the nextjs decoy
+  });
+
   it('serves the WHM login decoy at the bare /whm path', async () => {
     const response = await SELF.fetch('http://example.test/whm');
     expect(response.status).toBe(200);
