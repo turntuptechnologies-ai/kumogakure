@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { findExplicitBait } from './bait/catalog.js';
+import { findHeaderBait } from './bait/headers.js';
 import { findPatternBait } from './bait/patterns.js';
 import { getTemplate } from './bait/templates/index.js';
 import { fingerprintHeaders } from './fingerprint/headers.js';
@@ -20,7 +21,10 @@ app.all('*', async (c) => {
   const path = url.pathname;
 
   try {
-    const match = findExplicitBait(path) ?? findPatternBait(path);
+    // Path-based matchers first; the header-signature matcher is a
+    // fallback for probes routed by a header rather than the URL (e.g.
+    // Next.js Server Actions), so it never overrides a known product path.
+    const match = findExplicitBait(path) ?? findPatternBait(path) ?? findHeaderBait(request);
     const category: BaitCategory = match?.category ?? 'unknown';
     const subcategory = match?.subcategory;
     const templateName = match?.template ?? 'not-found';

@@ -54,6 +54,7 @@ import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
 import { laravelTelescope } from './laravel-telescope.js';
 import { mcp } from './mcp.js';
+import { nextjsServerAction } from './nextjs-server-action.js';
 import { phpDatabaseConfig } from './php-database-config.js';
 import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
@@ -117,6 +118,7 @@ const templates: Record<string, TemplateFn> = {
   hnap1: hnap1,
   'boa-form-login': boaFormLogin,
   mcp: mcp,
+  'nextjs-server-action': nextjsServerAction,
   phpinfo: phpinfo,
   'gravity-smtp-system-report': gravitySmtpSystemReport,
   'fake-gitconfig': fakeGitconfig,
