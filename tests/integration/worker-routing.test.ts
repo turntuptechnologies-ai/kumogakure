@@ -123,6 +123,16 @@ describe('Worker routing', () => {
     expect(await env.text()).toContain('apiBaseUrl');
   });
 
+  it('captures the PHPUnit eval-stdin RCE probe with an empty 200 (no execution)', async () => {
+    const response = await SELF.fetch(
+      'http://example.test/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php',
+      { method: 'POST', body: '<?php echo md5("pwned"); ?>' },
+    );
+    expect(response.status).toBe(200);
+    const text = await response.text();
+    expect(text).not.toContain('a6e1a972a0c0fa1bc5d8d9d4f3f3f8a3');
+  });
+
   it('serves the phpinfo decoy for the ownCloud graphapi CVE-2023-49103 path', async () => {
     const response = await SELF.fetch(
       'http://example.test/owncloud/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',

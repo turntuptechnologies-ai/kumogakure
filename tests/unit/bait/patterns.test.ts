@@ -888,6 +888,24 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes PHPUnit eval-stdin.php (CVE-2017-9841) at any depth to its decoy', () => {
+    for (const p of [
+      '/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php',
+      '/lib/phpunit/phpunit/src/Util/PHP/eval-stdin.php',
+      '/phpunit/src/Util/PHP/eval-stdin.php',
+      '/app//vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('phpunit');
+      expect(m?.template, p).toBe('phpunit-eval-stdin');
+    }
+  });
+
+  it('does not match eval-stdin.php outside a phpunit path', () => {
+    expect(findPatternBait('/src/Util/PHP/eval-stdin.php')?.subcategory).not.toBe('phpunit');
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
