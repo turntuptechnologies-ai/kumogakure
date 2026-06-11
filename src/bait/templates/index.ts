@@ -58,6 +58,7 @@ import { nextjsServerAction } from './nextjs-server-action.js';
 import { phpDatabaseConfig } from './php-database-config.js';
 import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
+import { phpunitEvalStdin } from './phpunit-eval-stdin.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
@@ -120,6 +121,7 @@ const templates: Record<string, TemplateFn> = {
   mcp: mcp,
   'nextjs-server-action': nextjsServerAction,
   phpinfo: phpinfo,
+  'phpunit-eval-stdin': phpunitEvalStdin,
   'gravity-smtp-system-report': gravitySmtpSystemReport,
   'fake-gitconfig': fakeGitconfig,
   'fake-git-credentials': fakeGitCredentials,

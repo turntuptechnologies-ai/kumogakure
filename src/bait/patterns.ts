@@ -298,6 +298,18 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'owncloud',
     template: 'phpinfo',
   },
+  // PHPUnit `eval-stdin.php` pre-auth RCE — CVE-2017-9841. The bundled
+  // test helper evaluates the POST body as PHP. Canonical path is
+  // `vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php`, but scanners
+  // hit it under varied roots (`/lib/`, nested vendor dirs), so anchor on
+  // `phpunit/…/eval-stdin.php` at any depth. The decoy returns an empty
+  // 200 (executes nothing); the honeypot still captures the POSTed payload.
+  {
+    pattern: /^\/(?:[^/]+\/+)*phpunit\/(?:[^/]+\/+)*eval-stdin\.php$/,
+    category: 'cve-recon',
+    subcategory: 'phpunit',
+    template: 'phpunit-eval-stdin',
+  },
   // Git home-dir dotfiles at any depth (/root/, /home/<user>/, web
   // root). Distinct from the .git/ repo family below; final segment
   // must be exactly the dotfile name. .git-credentials is split to its
