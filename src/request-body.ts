@@ -1,3 +1,5 @@
+import { parsePositiveInt } from './env.js';
+
 export interface BodyReadResult {
   body: string;
   size: number;
@@ -53,6 +55,5 @@ export async function readRequestBody(request: Request, limit: number): Promise<
 }
 
 export function resolveBodyReadLimit(raw: string | undefined): number {
-  const parsed = raw === undefined ? Number.NaN : Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_BODY_READ_LIMIT;
+  return parsePositiveInt(raw) ?? DEFAULT_BODY_READ_LIMIT;
 }
