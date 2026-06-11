@@ -1,15 +1,17 @@
+import { parsePositiveInt } from '../env.js';
 import type { Env } from '../types.js';
 
 const DEFAULT_GC_BATCH_SIZE = 1000;
 
 function resolveBatchSize(raw: string | undefined): number {
-  const parsed = raw === undefined ? Number.NaN : Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_GC_BATCH_SIZE;
+  return parsePositiveInt(raw) ?? DEFAULT_GC_BATCH_SIZE;
 }
 
 export async function runDailyGc(env: Env): Promise<void> {
-  const retentionDays = Number.parseInt(env.RETENTION_DAYS, 10);
-  if (!Number.isFinite(retentionDays) || retentionDays <= 0) {
+  // No safe default for retention: an invalid value skips GC rather than
+  // risk deleting against an assumed window.
+  const retentionDays = parsePositiveInt(env.RETENTION_DAYS);
+  if (retentionDays === undefined) {
     console.log(JSON.stringify({ msg: 'gc_skipped', reason: 'invalid_retention' }));
     return;
   }
