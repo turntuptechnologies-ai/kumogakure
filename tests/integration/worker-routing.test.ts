@@ -265,4 +265,25 @@ describe('Worker routing', () => {
     expect(json.result.serverInfo.name).toBe('ops-mcp-gateway');
     expect(json.result.protocolVersion).toBe('2025-03-26');
   });
+
+  it('serves the authentic 401 for the WooCommerce customer collection', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/wc/v3/customers');
+    expect(response.status).toBe(401);
+    const json = (await response.json()) as { code: string };
+    expect(json.code).toBe('woocommerce_rest_cannot_view');
+  });
+
+  it('serves the authentic 401 for the MemberPress member collection', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/mepr/v1/members');
+    expect(response.status).toBe(401);
+    const json = (await response.json()) as { code: string };
+    expect(json.code).toBe('rest_forbidden');
+  });
+
+  it('mirrors the missing-param 400 for the Rank Math getHead SSRF probe', async () => {
+    const response = await SELF.fetch('http://example.test/wp-json/rankmath/v1/getHead');
+    expect(response.status).toBe(400);
+    const json = (await response.json()) as { code: string };
+    expect(json.code).toBe('rest_missing_callback_param');
+  });
 });

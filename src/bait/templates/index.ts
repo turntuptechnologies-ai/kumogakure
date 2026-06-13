@@ -54,11 +54,13 @@ import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
 import { laravelTelescope } from './laravel-telescope.js';
 import { mcp } from './mcp.js';
+import { memberpressMembers } from './memberpress-members.js';
 import { nextjsServerAction } from './nextjs-server-action.js';
 import { phpDatabaseConfig } from './php-database-config.js';
 import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { phpunitEvalStdin } from './phpunit-eval-stdin.js';
+import { rankmathGethead } from './rankmath-gethead.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
@@ -71,6 +73,7 @@ import { symfonyParametersYml } from './symfony-parameters-yml.js';
 import { symfonyProfiler } from './symfony-profiler.js';
 import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
+import { woocommerceCustomers } from './woocommerce-customers.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
@@ -170,6 +173,9 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-users-api': wordpressUsersApi,
   'wordpress-users-me': wordpressUsersMe,
   'wordpress-plugin-users': wordpressPluginUsers,
+  'woocommerce-customers': woocommerceCustomers,
+  'memberpress-members': memberpressMembers,
+  'rankmath-gethead': rankmathGethead,
   'wordpress-user-sitemap': wordpressUserSitemap,
   'wordpress-rest-content': wordpressRestContent,
   'wordpress-rest-root': wordpressRestRoot,
