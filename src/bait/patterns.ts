@@ -77,6 +77,44 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wordpress-rest-users',
     template: 'wordpress-plugin-users',
   },
+  // WooCommerce REST API customer collection (`wp-json/wc/v<n>/customers`,
+  // v1-v3, any depth). Unlike the plugin user-directory routes above —
+  // which leak a public member list on default permissions — WooCommerce
+  // list endpoints are authenticated, so an anonymous probe gets a
+  // `401 woocommerce_rest_cannot_view`. Distinct subcategory: the threat
+  // is customer-PII enumeration / leaked-API-key probing, and the decoy
+  // is a 401 (not a roster), so it must not fold into wordpress-plugin-users.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/wc\/v[0-9]+\/customers\/?$/,
+    category: 'cms-auth',
+    subcategory: 'woocommerce',
+    template: 'woocommerce-customers',
+  },
+  // MemberPress (Developer Tools) REST member collection
+  // (`wp-json/mepr/v<n>/members`). Gated by a `MEMBERPRESS-API-KEY`
+  // permission check; anonymous probes get the WP-core `401 rest_forbidden`.
+  // Same auth-gated PII-enumeration threat as WooCommerce above (member
+  // email/membership rather than a public roster), so a separate 401 decoy
+  // rather than the plugin-users list.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/mepr\/v[0-9]+\/members\/?$/,
+    category: 'cms-auth',
+    subcategory: 'memberpress',
+    template: 'memberpress-members',
+  },
+  // Rank Math SEO REST route `wp-json/rankmath/v<n>/getHead`. The endpoint
+  // fetches an attacker-supplied `?url=` server-side to return its `<head>`
+  // markup — an SSRF / open-proxy surface (reach internal services / cloud
+  // metadata). Product-specific security-relevant endpoint, so cve-recon
+  // (not cms-auth). The decoy never fetches; it mirrors the `url`-absent
+  // response (`400 rest_missing_callback_param`) and the honeypot captures
+  // the probe + any `?url=` payload. Route name is case-sensitive in WP.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/rankmath\/v[0-9]+\/getHead\/?$/,
+    category: 'cve-recon',
+    subcategory: 'rankmath',
+    template: 'rankmath-gethead',
+  },
   // WordPress user-enumeration sitemaps: core (5.5+) paginated user
   // sitemap `/wp-sitemap-users-<n>.xml`. Lists one `/author/<slug>/` URL
   // per account — the same username-slug leak as `wp/v2/users`, via XML.

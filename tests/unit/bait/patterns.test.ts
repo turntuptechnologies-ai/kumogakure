@@ -697,6 +697,45 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes WooCommerce customer collection to the auth-gated 401 decoy', () => {
+    for (const p of [
+      '/wp-json/wc/v1/customers',
+      '/wp-json/wc/v2/customers',
+      '/wp-json/wc/v3/customers',
+      '/wp-json/wc/v3/customers/', // trailing slash
+      '/shop/wp-json/wc/v3/customers', // any-depth prefix
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('woocommerce');
+      expect(m?.template, p).toBe('woocommerce-customers');
+    }
+    // Not folded into the public plugin-users roster decoy.
+    expect(findPatternBait('/wp-json/wc/v3/customers')?.template).not.toBe(
+      'wordpress-plugin-users',
+    );
+  });
+
+  it('routes MemberPress member collection to the auth-gated 401 decoy', () => {
+    for (const p of ['/wp-json/mepr/v1/members', '/blog/wp-json/mepr/v1/members']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('memberpress');
+      expect(m?.template, p).toBe('memberpress-members');
+    }
+  });
+
+  it('routes the Rank Math getHead SSRF probe to cve-recon/rankmath', () => {
+    for (const p of ['/wp-json/rankmath/v1/getHead', '/sub/wp-json/rankmath/v1/getHead']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('rankmath');
+      expect(m?.template, p).toBe('rankmath-gethead');
+    }
+    // Route name is case-sensitive in WP; the lowercase form is not a real route.
+    expect(findPatternBait('/wp-json/rankmath/v1/gethead')?.template).not.toBe('rankmath-gethead');
+  });
+
   it('routes the core user sitemap to wordpress-user-sitemap', () => {
     for (const p of ['/wp-sitemap-users-1.xml', '/wp-sitemap-users-2.xml']) {
       const m = findPatternBait(p);
