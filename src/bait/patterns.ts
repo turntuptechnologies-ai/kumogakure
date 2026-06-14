@@ -394,6 +394,17 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'aws',
     template: 'fake-aws-config',
   },
+  // AWS keys persisted as JSON (`aws-credentials.json` / `aws_credentials.json`)
+  // at any depth — the SDK-style camelCase counterpart to the INI
+  // `.aws/credentials` store above. Same credential-theft class. The basename
+  // `aws-credentials` is not in the GCP `*.json` allowlist below, so it would
+  // otherwise fall through to unknown; served the JSON-shaped AWS-creds decoy.
+  {
+    pattern: /^\/(?:[^/]+\/)*aws[-_]credentials\.json$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-aws-credentials-json',
+  },
   // GCP service-account JSON key files. Operators routinely commit
   // these under varied basenames (keyfile.json, service-account.json,
   // firebase-adminsdk.json, application_default_credentials.json, …).
