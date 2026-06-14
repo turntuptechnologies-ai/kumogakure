@@ -213,6 +213,24 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes JSON-form AWS credential files at any depth to cloud-credentials', () => {
+    for (const p of [
+      '/aws-credentials.json',
+      '/aws_credentials.json',
+      '/config/aws-credentials.json',
+      '/home/u/aws-credentials.json',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('cloud-credentials');
+      expect(m?.template, p).toBe('fake-aws-credentials-json');
+    }
+    // Not swept into the GCP service-account JSON decoy.
+    expect(findPatternBait('/aws-credentials.json')?.template).not.toBe(
+      'fake-gcp-service-account-key',
+    );
+  });
+
   it('routes GCP service-account JSON key probes at any depth to cloud-credentials', () => {
     for (const p of [
       '/keyfile.json',

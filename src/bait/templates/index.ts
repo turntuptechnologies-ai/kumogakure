@@ -22,6 +22,7 @@ import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
+import { fakeAwsCredentialsJson } from './fake-aws-credentials-json.js';
 import { fakeBoto } from './fake-boto.js';
 import { fakeEnv } from './fake-env.js';
 import { fakeFtpConfig } from './fake-ftp-config.js';
@@ -105,6 +106,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-git-head': fakeGitHead,
   'fake-wp-config': fakeWpConfig,
   'fake-aws-credentials': fakeAwsCredentials,
+  'fake-aws-credentials-json': fakeAwsCredentialsJson,
   'fake-server-status': fakeServerStatus,
   'spring-actuator-health': springActuatorHealth,
   'spring-actuator-env': springActuatorEnv,
