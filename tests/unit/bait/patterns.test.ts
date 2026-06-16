@@ -619,9 +619,9 @@ describe('bait patterns', () => {
   });
 
   it('does not let the tags/list pattern shadow the /v2/ base, _catalog, or other v2 verbs', () => {
-    // `/v2/` and `/v2/_catalog` are explicit catalog entries; manifests /
-    // blobs are out of scope. None end in `/tags/list`, so the pattern
-    // must leave them all unmatched.
+    // `/v2/` and `/v2/_catalog` are explicit catalog entries; manifests and
+    // blobs have their own patterns. None end in `/tags/list`, so the
+    // tags pattern must leave them all unmatched.
     for (const p of [
       '/v2/',
       '/v2/_catalog',
@@ -633,6 +633,28 @@ describe('bait patterns', () => {
     ]) {
       expect(findPatternBait(p)?.template).not.toBe('docker-registry-tags');
     }
+  });
+
+  it('routes Docker Registry V2 blob pulls to the docker-registry-blobs decoy', () => {
+    for (const p of [
+      // Observed gap paths: per-repo blob fetches by digest.
+      '/v2/app/api/blobs/sha256:9b794450f7b6db9c1bb0d9d4e5e7c2a1f0e3d8b76c5a4938271605f4e3d2c1b0',
+      '/v2/infra/proxy/blobs/sha256:3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e',
+      '/v2/internal/migrator/blobs/sha256:5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a',
+      // Generic single- and deep-segment repo shapes.
+      '/v2/singlelevel/blobs/sha256:abc',
+      '/v2/a/b/c/blobs/sha256:abc',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('api-recon');
+      expect(m?.subcategory, p).toBe('docker-registry');
+      expect(m?.template, p).toBe('docker-registry-blobs');
+    }
+    // Distinct /blobs/ suffix: never collides with tags/list or manifests.
+    expect(findPatternBait('/v2/app/api/tags/list')?.template).toBe('docker-registry-tags');
+    expect(findPatternBait('/v2/app/api/manifests/latest')?.template).toBe(
+      'docker-registry-manifests',
+    );
   });
 
   it('matches /.git/* paths', () => {

@@ -12,6 +12,7 @@ import { djangoDebugToolbar } from './django-debug-toolbar.js';
 import { djangoSettings } from './django-settings.js';
 import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryBase } from './docker-registry-base.js';
+import { dockerRegistryBlobs } from './docker-registry-blobs.js';
 import { dockerRegistryCatalog } from './docker-registry-catalog.js';
 import { dockerRegistryManifests } from './docker-registry-manifests.js';
 import { dockerRegistryTags } from './docker-registry-tags.js';
@@ -151,6 +152,7 @@ const templates: Record<string, TemplateFn> = {
   'laravel-telescope': laravelTelescope,
   'exchange-exporttool': exchangeExporttool,
   'docker-registry-base': dockerRegistryBase,
+  'docker-registry-blobs': dockerRegistryBlobs,
   'docker-registry-catalog': dockerRegistryCatalog,
   'docker-registry-manifests': dockerRegistryManifests,
   'docker-registry-tags': dockerRegistryTags,

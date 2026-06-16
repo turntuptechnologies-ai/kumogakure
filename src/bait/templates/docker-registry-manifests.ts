@@ -34,13 +34,16 @@ const LAYER_MEDIA_TYPE = 'application/vnd.docker.image.rootfs.diff.tar.gzip';
 
 // Shared runtime base layer reused across the images — realistic for a
 // set of services built FROM the same base.
-const BASE_LAYER = {
+// Exported (with `repoImages`) as the single source of truth for the
+// digests the blobs decoy must serve — the drift-guard test asserts every
+// config/layer digest referenced here is serveable at `/blobs/<digest>`.
+export const BASE_LAYER = {
   mediaType: LAYER_MEDIA_TYPE,
   size: 3372971,
   digest: 'sha256:9b794450f7b6db9c1bb0d9d4e5e7c2a1f0e3d8b76c5a4938271605f4e3d2c1b0',
 };
 
-interface RepoImage {
+export interface RepoImage {
   /** `Docker-Content-Digest` of the served manifest; also accepted as a
    *  pull-by-digest reference (`/manifests/sha256:…`). */
   manifestDigest: string;
@@ -49,7 +52,7 @@ interface RepoImage {
   appLayer: { size: number; digest: string };
 }
 
-const repoImages: ReadonlyArray<readonly [string, RepoImage]> = [
+export const repoImages: ReadonlyArray<readonly [string, RepoImage]> = [
   [
     'app/api',
     {

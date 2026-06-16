@@ -83,6 +83,26 @@ describe('Worker routing', () => {
     expect(json.errors[0].code).toBe('MANIFEST_UNKNOWN');
   });
 
+  it('serves the image config blob a manifest points to (full registry walk)', async () => {
+    const manifest = (await (
+      await SELF.fetch('http://example.test/v2/app/api/manifests/latest')
+    ).json()) as { config: { digest: string } };
+    const blob = await SELF.fetch(`http://example.test/v2/app/api/blobs/${manifest.config.digest}`);
+    expect(blob.status).toBe(200);
+    expect(blob.headers.get('content-type')).toBe('application/vnd.docker.container.image.v1+json');
+    const cfg = (await blob.json()) as { config: { Env: string[] } };
+    expect(Array.isArray(cfg.config.Env)).toBe(true);
+  });
+
+  it('returns BLOB_UNKNOWN for a Docker blob digest that is not advertised', async () => {
+    const response = await SELF.fetch(
+      'http://example.test/v2/app/api/blobs/sha256:deadbeef00000000000000000000000000000000000000000000000000000000',
+    );
+    expect(response.status).toBe(404);
+    const json = (await response.json()) as { errors: Array<{ code: string }> };
+    expect(json.errors[0].code).toBe('BLOB_UNKNOWN');
+  });
+
   it('serves the GraphQL introspection decoy for a non-root graphql mount', async () => {
     const response = await SELF.fetch('http://example.test/api/graphql', {
       method: 'POST',

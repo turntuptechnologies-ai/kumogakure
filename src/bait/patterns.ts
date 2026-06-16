@@ -631,6 +631,22 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'docker-registry',
     template: 'docker-registry-manifests',
   },
+  // Docker Registry HTTP API V2 blob endpoint
+  // (`GET /v2/<name>/blobs/<digest>`). Final hop of the registry probe
+  // chain: after pulling a manifest, scanners fetch its referenced blobs —
+  // above all the config blob, whose `config.Env` leaks the secrets baked
+  // into the image (this is the payoff of registry scanning). The repository
+  // name is variable (one or more segments) and the digest is a single
+  // `sha256:…` segment. The template serves the config JSON / a small gzip
+  // for the digests the manifest decoy advertises and a `BLOB_UNKNOWN` 404
+  // otherwise. Distinct `/blobs/` suffix means it never overlaps the
+  // `/manifests/` or `/tags/list` entries.
+  {
+    pattern: /^\/v2\/[^/]+(?:\/[^/]+)*\/blobs\/[^/]+$/,
+    category: 'api-recon',
+    subcategory: 'docker-registry',
+    template: 'docker-registry-blobs',
+  },
   // Atlassian Confluence AUI Velocity templates (`/template/aui/<name>.vm`)
   // — the unauthenticated OGNL-injection sink of CVE-2021-26084. Scanners
   // POST a crafted `queryString` that a vulnerable server evaluates as
