@@ -23,6 +23,16 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'wordpress-user-sitemap',
     template: 'wordpress-user-sitemap',
   },
+  // WordPress core sitemap index (WP 5.5+) — the discovery entry point a
+  // scanner reads first; it lists `wp-sitemap-users-1.xml`, which the
+  // wordpress-user-sitemap decoy serves. Serving the index keeps that
+  // enumeration chain coherent (index -> user sitemap -> slugs).
+  {
+    path: '/wp-sitemap.xml',
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'wordpress-sitemap-index',
+  },
   {
     path: '/administrator/index.php',
     category: 'cms-auth',

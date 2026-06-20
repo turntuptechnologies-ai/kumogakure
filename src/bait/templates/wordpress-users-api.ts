@@ -44,17 +44,21 @@ const users = [
 
 const placeholderAvatarHash = '0'.repeat(32);
 
-const body = JSON.stringify(
-  users.map((u) => ({
-    ...u,
-    avatar_urls: {
-      '24': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=24&d=mm&r=g`,
-      '48': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=48&d=mm&r=g`,
-      '96': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=96&d=mm&r=g`,
-    },
-    meta: [],
-  })),
-);
+// Enriched public-user objects, exported as the single source of truth so
+// the by-id decoy (`wp/v2/users/<id>`) serves the exact same record the
+// collection advertises — a scanner that lists then pulls by id sees a
+// coherent 3-user site (drift-guard test asserts they agree).
+export const publicUsers = users.map((u) => ({
+  ...u,
+  avatar_urls: {
+    '24': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=24&d=mm&r=g`,
+    '48': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=48&d=mm&r=g`,
+    '96': `https://secure.gravatar.com/avatar/${placeholderAvatarHash}?s=96&d=mm&r=g`,
+  },
+  meta: [],
+}));
+
+const body = JSON.stringify(publicUsers);
 
 export const wordpressUsersApi: TemplateFn = () => {
   return new Response(body, {

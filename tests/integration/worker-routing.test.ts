@@ -169,6 +169,23 @@ describe('Worker routing', () => {
     expect(json.code).toBe('rest_not_logged_in');
   });
 
+  it('serves a coherent single user for an advertised id and rest_user_invalid_id otherwise', async () => {
+    const valid = await SELF.fetch('http://example.test/wp-json/wp/v2/users/1');
+    expect(valid.status).toBe(200);
+    expect(((await valid.json()) as { id: number }).id).toBe(1);
+
+    const invalid = await SELF.fetch('http://example.test/wp-json/wp/v2/users/10');
+    expect(invalid.status).toBe(404);
+    expect(((await invalid.json()) as { code: string }).code).toBe('rest_user_invalid_id');
+  });
+
+  it('serves the WordPress sitemap index pointing at the user sub-sitemap', async () => {
+    const response = await SELF.fetch('http://example.test/wp-sitemap.xml');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('xml');
+    expect(await response.text()).toContain('wp-sitemap-users-1.xml');
+  });
+
   it('serves the WordPress REST content decoy for wp/v2/posts', async () => {
     const response = await SELF.fetch('http://example.test/wp-json/wp/v2/posts');
     expect(response.status).toBe(200);

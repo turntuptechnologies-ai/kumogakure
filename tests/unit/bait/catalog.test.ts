@@ -42,6 +42,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('fake-env');
   });
 
+  it('routes the WordPress sitemap index to its decoy', () => {
+    const entry = findExplicitBait('/wp-sitemap.xml');
+    expect(entry?.category).toBe('cms-auth');
+    expect(entry?.subcategory).toBe('wordpress-fingerprint');
+    expect(entry?.template).toBe('wordpress-sitemap-index');
+  });
+
   it('routes the Gravity SMTP CVE-2026-4020 endpoint to its decoy', () => {
     const entry = findExplicitBait('/wp-json/gravitysmtp/v1/tests/mock-data');
     expect(entry?.category).toBe('cve-recon');
