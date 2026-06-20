@@ -842,6 +842,26 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-json/wp/v2/users/')?.template).toBe('wordpress-users-api');
   });
 
+  it('routes wp/v2/users/<id> to the single-user decoy, distinct from collection and /me', () => {
+    for (const p of [
+      '/wp-json/wp/v2/users/1',
+      '/wp-json/wp/v2/users/10',
+      '/blog/wp-json/wp/v2/users/3',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-rest-users');
+      expect(m?.template, p).toBe('wordpress-user-by-id');
+    }
+    // numeric-only id: /me and the bare collection are unaffected
+    expect(findPatternBait('/wp-json/wp/v2/users/me')?.template).toBe('wordpress-users-me');
+    expect(findPatternBait('/wp-json/wp/v2/users')?.template).toBe('wordpress-users-api');
+    // a non-numeric trailing segment is not a single-user pull
+    expect(findPatternBait('/wp-json/wp/v2/users/admin')?.template).not.toBe(
+      'wordpress-user-by-id',
+    );
+  });
+
   it('routes the ownCloud graphapi GetPhpInfo.php (CVE-2023-49103) to the phpinfo decoy', () => {
     for (const p of [
       '/owncloud/apps/graphapi/vendor/microsoft/microsoft-graph/tests/GetPhpInfo.php',

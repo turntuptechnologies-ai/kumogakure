@@ -60,6 +60,19 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'wordpress-rest-users',
     template: 'wordpress-users-api',
   },
+  // WordPress REST single-user endpoint `wp-json/wp/v2/users/<id>` (numeric
+  // id). Scanners pull individual ids to confirm accounts and harvest the
+  // slug/display-name for credential stuffing (the gap that triggered this
+  // was an id sweep: 3, 7, 8, 10). Numeric-only id so it never overlaps the
+  // `/me` route above or the `users/?$` collection. The decoy serves the
+  // collection's own records for advertised ids and `rest_user_invalid_id`
+  // otherwise.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/wp\/v2\/users\/[0-9]+$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-rest-users',
+    template: 'wordpress-user-by-id',
+  },
   // User/member enumeration via WordPress membership / LMS / community
   // plugins, which register their own `wp-json/<plugin>/<ver>/` routes:
   // BuddyPress / BuddyBoss / PeepSo / Youzer / Ultimate Member

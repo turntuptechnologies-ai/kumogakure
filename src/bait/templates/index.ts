@@ -82,6 +82,8 @@ import { wordpressOembed } from './wordpress-oembed.js';
 import { wordpressPluginUsers } from './wordpress-plugin-users.js';
 import { wordpressRestContent } from './wordpress-rest-content.js';
 import { wordpressRestRoot } from './wordpress-rest-root.js';
+import { wordpressSitemapIndex } from './wordpress-sitemap-index.js';
+import { wordpressUserById } from './wordpress-user-by-id.js';
 import { wordpressUserSitemap } from './wordpress-user-sitemap.js';
 import { wordpressUsersApi } from './wordpress-users-api.js';
 import { wordpressUsersMe } from './wordpress-users-me.js';
@@ -175,7 +177,9 @@ const templates: Record<string, TemplateFn> = {
   'composer-json': composerJson,
   'wordpress-id3-license': wordpressId3License,
   'wordpress-users-api': wordpressUsersApi,
+  'wordpress-user-by-id': wordpressUserById,
   'wordpress-users-me': wordpressUsersMe,
+  'wordpress-sitemap-index': wordpressSitemapIndex,
   'wordpress-plugin-users': wordpressPluginUsers,
   'woocommerce-customers': woocommerceCustomers,
   'memberpress-members': memberpressMembers,
