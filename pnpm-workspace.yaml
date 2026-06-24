@@ -14,6 +14,23 @@
 # a specific package ever needs to bypass this.
 minimumReleaseAge: 10080
 
+# Security pins for transitive (dev-tooling) dependencies whose parents
+# (vitest, wrangler, miniflare, @cloudflare/vitest-pool-workers) still
+# resolve to vulnerable versions. These are build/test-only — none ship
+# in the deployed Worker bundle — and the advisories require unused code
+# paths (vite dev server / undici SOCKS5 ProxyAgent) or Windows, so there
+# is no production exposure here. Pinned to the patched versions anyway to
+# clear the Dependabot alerts. Security fixes, so exempt from the cooldown
+# stance; each pinned version is already well past minimumReleaseAge.
+# Drop an entry once a parent bump pulls the fixed version on its own.
+overrides:
+  # dev-server `server.fs.deny` bypass + launch-editor NTLM (Windows).
+  vite: '8.0.16'
+  # SOCKS5 ProxyAgent TLS-bypass / pool reuse + cache/cookie advisories.
+  undici: '7.28.0'
+  # dev-server arbitrary file read on Windows.
+  esbuild: '0.28.1'
+
 # Allowlist of packages whose lifecycle (postinstall) scripts may run.
 # pnpm >= 10 blocks lifecycle scripts by default — without this list,
 # `esbuild` and `workerd` ship empty platform binaries and
