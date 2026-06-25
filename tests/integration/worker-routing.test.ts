@@ -345,4 +345,11 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('phpMyAdmin');
   });
+
+  it('serves the GitLab CI decoy at /.gitlab-ci.yml', async () => {
+    const response = await SELF.fetch('http://example.test/.gitlab-ci.yml');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('yaml');
+    expect(await response.text()).toContain('stages:');
+  });
 });

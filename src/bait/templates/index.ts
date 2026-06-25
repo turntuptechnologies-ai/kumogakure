@@ -36,6 +36,7 @@ import { fakeGitHead } from './fake-git-head.js';
 import { fakeGitattributes } from './fake-gitattributes.js';
 import { fakeGitconfig } from './fake-gitconfig.js';
 import { fakeGitignore } from './fake-gitignore.js';
+import { fakeGitlabCi } from './fake-gitlab-ci.js';
 import { fakeGitmodules } from './fake-gitmodules.js';
 import { fakeJsConfig } from './fake-js-config.js';
 import { fakeNetrc } from './fake-netrc.js';
@@ -147,6 +148,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitignore': fakeGitignore,
   'fake-gitattributes': fakeGitattributes,
   'fake-gitmodules': fakeGitmodules,
+  'fake-gitlab-ci': fakeGitlabCi,
   'fake-js-config': fakeJsConfig,
   'fake-wlwmanifest': fakeWlwmanifest,
   'fake-gcp-service-account-key': fakeGcpServiceAccountKey,

@@ -518,6 +518,17 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes .gitlab-ci.yml at any depth to the GitLab CI decoy', () => {
+    for (const p of ['/.gitlab-ci.yml', '/.gitlab-ci.yaml', '/sub/.gitlab-ci.yml']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('gitlab-ci');
+      expect(m?.template, p).toBe('fake-gitlab-ci');
+    }
+    // not the git-metadata dotfile family
+    expect(findPatternBait('/.gitlab-ci.yml')?.subcategory).not.toBe('git');
+  });
+
   it('does not over-match docker-compose lookalikes', () => {
     for (const p of [
       '/docker-compose.yml.bak',
