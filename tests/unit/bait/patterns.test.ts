@@ -6,6 +6,19 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-content/uploads/shell.php')?.category).toBe('webshell');
   });
 
+  it('routes phpMyAdmin directory aliases to the phpMyAdmin login decoy', () => {
+    for (const p of ['/pma/', '/PMA/', '/phpMyAdmin/', '/myadmin/', '/mysqladmin/', '/pma']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('phpmyadmin');
+      expect(m?.template, p).toBe('phpmyadmin-login');
+    }
+    // not an alias — must not match
+    for (const p of ['/pmadmin/', '/myadminer/', '/pma/index.php']) {
+      expect(findPatternBait(p)?.template, p).not.toBe('phpmyadmin-login');
+    }
+  });
+
   it('matches backup file extensions', () => {
     expect(findPatternBait('/database.sql.bak')?.category).toBe('config-leak');
     expect(findPatternBait('/config.old')?.category).toBe('config-leak');

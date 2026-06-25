@@ -323,4 +323,26 @@ describe('Worker routing', () => {
     const json = (await response.json()) as { code: string };
     expect(json.code).toBe('rest_missing_callback_param');
   });
+
+  it('serves the Node manifest decoy at /package.json', async () => {
+    const response = await SELF.fetch('http://example.test/package.json');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    const json = (await response.json()) as { dependencies: Record<string, string> };
+    expect(Object.keys(json.dependencies).length).toBeGreaterThan(0);
+  });
+
+  it('serves the Adminer login decoy at /adminer.php', async () => {
+    const response = await SELF.fetch('http://example.test/adminer.php');
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('Login - Adminer');
+    expect(html).toContain('auth[password]');
+  });
+
+  it('serves the phpMyAdmin login decoy for the /PMA/ alias', async () => {
+    const response = await SELF.fetch('http://example.test/PMA/');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('phpMyAdmin');
+  });
 });

@@ -49,6 +49,22 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('wordpress-sitemap-index');
   });
 
+  it('routes /package.json to the Node manifest decoy', () => {
+    const entry = findExplicitBait('/package.json');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('js-package-manifest');
+    expect(entry?.template).toBe('fake-package-json');
+  });
+
+  it('routes Adminer paths to the adminer login decoy', () => {
+    for (const p of ['/adminer.php', '/adminer/']) {
+      const entry = findExplicitBait(p);
+      expect(entry?.category, p).toBe('cms-auth');
+      expect(entry?.subcategory, p).toBe('adminer');
+      expect(entry?.template, p).toBe('adminer-login');
+    }
+  });
+
   it('routes the Gravity SMTP CVE-2026-4020 endpoint to its decoy', () => {
     const entry = findExplicitBait('/wp-json/gravitysmtp/v1/tests/mock-data');
     expect(entry?.category).toBe('cve-recon');

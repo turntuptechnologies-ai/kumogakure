@@ -1,6 +1,17 @@
 import type { PatternEntry } from '../types.js';
 
 export const patternBait: PatternEntry[] = [
+  // Common phpMyAdmin directory aliases scanners spray (`/pma/`, `/PMA/`,
+  // `/phpMyAdmin/`, `/myadmin/`, `/mysqladmin/`). The canonical
+  // `/phpmyadmin/` is an explicit catalog entry (checked first); this
+  // catches the rest, case-insensitively, and serves the same login decoy.
+  // Root-level only — the dir name is the fingerprint.
+  {
+    pattern: /^\/(?:phpmyadmin|pma|myadmin|mysqladmin|mysql-admin)\/?$/i,
+    category: 'cms-auth',
+    subcategory: 'phpmyadmin',
+    template: 'phpmyadmin-login',
+  },
   {
     pattern: /^\/wp-content\/.+\.(php|phtml)$/,
     category: 'webshell',

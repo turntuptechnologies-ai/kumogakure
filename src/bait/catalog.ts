@@ -45,6 +45,22 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'phpmyadmin',
     template: 'phpmyadmin-login',
   },
+  // Adminer (single-file DB admin tool) — sprayed alongside phpMyAdmin,
+  // active CVE history (CVE-2021-21311 SSRF, file-read families). Distinct
+  // product from phpMyAdmin, so its own login decoy. `/adminer/` covers the
+  // directory-install variant.
+  {
+    path: '/adminer.php',
+    category: 'cms-auth',
+    subcategory: 'adminer',
+    template: 'adminer-login',
+  },
+  {
+    path: '/adminer/',
+    category: 'cms-auth',
+    subcategory: 'adminer',
+    template: 'adminer-login',
+  },
   { path: '/user/login', category: 'cms-auth', subcategory: 'drupal', template: 'drupal-login' },
   // cPanel / WHM service-subdomain proxy fingerprint endpoints — the
   // `/___proxy_subdomain_<service>` convention is cPanel's own URL
@@ -230,6 +246,15 @@ export const explicitBait: BaitEntry[] = [
     category: 'config-leak',
     subcategory: 'php-package-manifest',
     template: 'composer-json',
+  },
+  // Node `package.json` — no secrets, but discloses pinned dependency
+  // versions for downstream CVE matching. Node sibling of composer.json /
+  // pom.properties (Tier 2 version disclosure).
+  {
+    path: '/package.json',
+    category: 'config-leak',
+    subcategory: 'js-package-manifest',
+    template: 'fake-package-json',
   },
 
   // cve-recon
