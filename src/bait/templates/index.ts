@@ -1,4 +1,5 @@
 import type { TemplateFn, TemplateName } from '../../types.js';
+import { adminerLogin } from './adminer-login.js';
 import { apiHealth } from './api-health.js';
 import { aspnetTrace } from './aspnet-trace.js';
 import { aspnetWebConfig } from './aspnet-web-config.js';
@@ -39,6 +40,7 @@ import { fakeGitmodules } from './fake-gitmodules.js';
 import { fakeJsConfig } from './fake-js-config.js';
 import { fakeNetrc } from './fake-netrc.js';
 import { fakeNpmrc } from './fake-npmrc.js';
+import { fakePackageJson } from './fake-package-json.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
@@ -103,6 +105,7 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-xmlrpc': wordpressXmlrpc,
   'joomla-login': joomlaLogin,
   'phpmyadmin-login': phpmyadminLogin,
+  'adminer-login': adminerLogin,
   'drupal-login': drupalLogin,
   'fake-env': fakeEnv,
   'fake-git-config': fakeGitConfig,
@@ -175,6 +178,7 @@ const templates: Record<string, TemplateFn> = {
   'drupal-settings-php': drupalSettingsPhp,
   'php-database-config': phpDatabaseConfig,
   'composer-json': composerJson,
+  'fake-package-json': fakePackageJson,
   'wordpress-id3-license': wordpressId3License,
   'wordpress-users-api': wordpressUsersApi,
   'wordpress-user-by-id': wordpressUserById,
