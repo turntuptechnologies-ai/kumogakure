@@ -515,6 +515,17 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'docker-compose',
     template: 'docker-compose-yml',
   },
+  // GitLab CI/CD pipeline config `.gitlab-ci.yml` at any depth. Scanners
+  // pull it (CWE-200) to map the deploy topology — internal registry
+  // hosts, image names, deploy targets — and to catch inlined secrets.
+  // Distinct from the .git* metadata dotfiles (that family is git repo
+  // state; this is CI config), so its own subcategory.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.gitlab-ci\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'gitlab-ci',
+    template: 'fake-gitlab-ci',
+  },
   // Django `settings.py` at any depth (e.g. `/settings.py`,
   // `/<project>/settings.py`, `/config/settings.py`). Exposes
   // `SECRET_KEY`, `DATABASES['default']`, and `EMAIL_HOST_PASSWORD`
