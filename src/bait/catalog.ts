@@ -14,6 +14,16 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'wordpress',
     template: 'wordpress-xmlrpc',
   },
+  // WordPress core AJAX endpoint. Always present on a real install, so a
+  // host serving wp-login.php must not 404 it. Probed as a fingerprint and
+  // for the unauthenticated wp_ajax_nopriv_* action surface; with no
+  // registered action WP returns `0` (HTTP 400).
+  {
+    path: '/wp-admin/admin-ajax.php',
+    category: 'cms-auth',
+    subcategory: 'wordpress',
+    template: 'wordpress-admin-ajax',
+  },
   // Yoast SEO / Rank Math author sitemap — lists one `/author/<slug>/`
   // URL per account, leaking the username-slug set (credential-stuffing
   // input), same threat as the core `wp-sitemap-users-<n>.xml` pattern.
