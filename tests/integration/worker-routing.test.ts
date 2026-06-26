@@ -352,4 +352,10 @@ describe('Worker routing', () => {
     expect(response.headers.get('content-type')).toContain('yaml');
     expect(await response.text()).toContain('stages:');
   });
+
+  it('mirrors the WP admin-ajax no-action `0` response', async () => {
+    const response = await SELF.fetch('http://example.test/wp-admin/admin-ajax.php');
+    expect(response.status).toBe(400);
+    expect(await response.text()).toBe('0');
+  });
 });

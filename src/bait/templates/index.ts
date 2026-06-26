@@ -79,6 +79,7 @@ import { symfonyProfiler } from './symfony-profiler.js';
 import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
 import { woocommerceCustomers } from './woocommerce-customers.js';
+import { wordpressAdminAjax } from './wordpress-admin-ajax.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
@@ -104,6 +105,7 @@ const templates: Record<string, TemplateFn> = {
   'not-found': notFound,
   'wordpress-login': wordpressLogin,
   'wordpress-xmlrpc': wordpressXmlrpc,
+  'wordpress-admin-ajax': wordpressAdminAjax,
   'joomla-login': joomlaLogin,
   'phpmyadmin-login': phpmyadminLogin,
   'adminer-login': adminerLogin,

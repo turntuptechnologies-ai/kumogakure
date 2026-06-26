@@ -49,6 +49,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('wordpress-sitemap-index');
   });
 
+  it('routes /wp-admin/admin-ajax.php to the admin-ajax decoy', () => {
+    const entry = findExplicitBait('/wp-admin/admin-ajax.php');
+    expect(entry?.category).toBe('cms-auth');
+    expect(entry?.subcategory).toBe('wordpress');
+    expect(entry?.template).toBe('wordpress-admin-ajax');
+  });
+
   it('routes /package.json to the Node manifest decoy', () => {
     const entry = findExplicitBait('/package.json');
     expect(entry?.category).toBe('config-leak');
