@@ -358,4 +358,19 @@ describe('Worker routing', () => {
     expect(response.status).toBe(400);
     expect(await response.text()).toBe('0');
   });
+
+  it('serves the phpMyAdmin login decoy for the /pma/index.php login script', async () => {
+    const response = await SELF.fetch('http://example.test/pma/index.php');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('phpMyAdmin');
+  });
+
+  it('serves the SVN entries decoy and 404s wc.db (coherent format-10 working copy)', async () => {
+    const entries = await SELF.fetch('http://example.test/.svn/entries');
+    expect(entries.status).toBe(200);
+    expect(await entries.text()).toContain('svn.internal.invalid');
+
+    const wcdb = await SELF.fetch('http://example.test/.svn/wc.db');
+    expect(wcdb.status).toBe(404);
+  });
 });

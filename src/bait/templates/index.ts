@@ -45,6 +45,7 @@ import { fakePackageJson } from './fake-package-json.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
+import { fakeSvnEntries } from './fake-svn-entries.js';
 import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
@@ -117,6 +118,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-aws-credentials': fakeAwsCredentials,
   'fake-aws-credentials-json': fakeAwsCredentialsJson,
   'fake-server-status': fakeServerStatus,
+  'fake-svn-entries': fakeSvnEntries,
   'spring-actuator-health': springActuatorHealth,
   'spring-actuator-env': springActuatorEnv,
   'spring-actuator-generic': springActuatorGeneric,

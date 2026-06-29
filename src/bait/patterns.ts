@@ -1,16 +1,30 @@
 import type { PatternEntry } from '../types.js';
 
 export const patternBait: PatternEntry[] = [
-  // Common phpMyAdmin directory aliases scanners spray (`/pma/`, `/PMA/`,
-  // `/phpMyAdmin/`, `/myadmin/`, `/mysqladmin/`). The canonical
+  // Common phpMyAdmin directory aliases scanners spray — the bare dir
+  // (`/pma/`, `/PMA/`, `/phpMyAdmin/`) and the login script under it
+  // (`/pma/index.php`, `/phpMyAdmin-2/index.php`). Covers the hyphen /
+  // version-suffixed spellings (`php-my-admin`, `phpmyadmin2`,
+  // `phpMyAdmin-2`, …) plus `myadmin` / `mysqladmin`. The canonical
   // `/phpmyadmin/` is an explicit catalog entry (checked first); this
-  // catches the rest, case-insensitively, and serves the same login decoy.
-  // Root-level only — the dir name is the fingerprint.
+  // catches the rest, case-insensitively, serving the same login decoy.
+  // Root-level dir name is the fingerprint.
   {
-    pattern: /^\/(?:phpmyadmin|pma|myadmin|mysqladmin|mysql-admin)\/?$/i,
+    pattern:
+      /^\/(?:php-?my-?admin(?:[-_.]?\d[\d.]*)?|pma|myadmin|mysql-?admin)(?:\/(?:index\.php)?)?$/i,
     category: 'cms-auth',
     subcategory: 'phpmyadmin',
     template: 'phpmyadmin-login',
+  },
+  // Adminer's login script under a directory (`/adminer/adminer.php`,
+  // `/admin/adminer.php`) at any depth. Root `/adminer.php` & `/adminer/`
+  // are explicit catalog entries (checked first); this catches the nested
+  // forms. Same adminer-login decoy.
+  {
+    pattern: /^\/(?:[^/]+\/)+adminer\.php$/,
+    category: 'cms-auth',
+    subcategory: 'adminer',
+    template: 'adminer-login',
   },
   {
     pattern: /^\/wp-content\/.+\.(php|phtml)$/,
@@ -580,6 +594,25 @@ export const patternBait: PatternEntry[] = [
     pattern: /^\/\.git\/.+/,
     category: 'config-leak',
     subcategory: 'git',
+    template: 'not-found',
+  },
+  // Subversion working-copy metadata exposed under the web root — the SVN
+  // parallel to the `.git/` family (CWE-538 source disclosure). `.svn/entries`
+  // is the file scanners read first to confirm `.svn` and (in the ≤1.6
+  // format) harvest the repository URL, so it gets a decoy; everything else
+  // under `.svn/` (the 1.7+ `wc.db` SQLite, `pristine/…`) is 404 — coherent
+  // with the old-format entries we serve (a 1.6 working copy has no wc.db).
+  // entries pattern is matched ahead of the `.svn/*` catch-all below.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.svn\/entries$/,
+    category: 'config-leak',
+    subcategory: 'svn',
+    template: 'fake-svn-entries',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.svn(?:\/.*)?$/,
+    category: 'config-leak',
+    subcategory: 'svn',
     template: 'not-found',
   },
   {
