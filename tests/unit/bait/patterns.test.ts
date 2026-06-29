@@ -6,16 +6,55 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-content/uploads/shell.php')?.category).toBe('webshell');
   });
 
-  it('routes phpMyAdmin directory aliases to the phpMyAdmin login decoy', () => {
-    for (const p of ['/pma/', '/PMA/', '/phpMyAdmin/', '/myadmin/', '/mysqladmin/', '/pma']) {
+  it('routes phpMyAdmin directory aliases (bare + /index.php) to the login decoy', () => {
+    for (const p of [
+      '/pma/',
+      '/PMA/',
+      '/phpMyAdmin/',
+      '/myadmin/',
+      '/mysqladmin/',
+      '/pma',
+      // login-script and version/hyphen-suffixed forms (2026-06-27 sweep)
+      '/pma/index.php',
+      '/phpmyadmin/index.php',
+      '/PMA/index.php',
+      '/mysql-admin/index.php',
+      '/phpMyAdmin-2/index.php',
+      '/phpMyAdmin2/index.php',
+      '/phpmyadmin2/index.php',
+      '/php-my-admin/index.php',
+      '/php-myadmin/index.php',
+    ]) {
       const m = findPatternBait(p);
       expect(m?.category, p).toBe('cms-auth');
       expect(m?.subcategory, p).toBe('phpmyadmin');
       expect(m?.template, p).toBe('phpmyadmin-login');
     }
     // not an alias — must not match
-    for (const p of ['/pmadmin/', '/myadminer/', '/pma/index.php']) {
+    for (const p of ['/pmadmin/', '/myadminer/', '/pma/setup/index.php', '/pma/config.php']) {
       expect(findPatternBait(p)?.template, p).not.toBe('phpmyadmin-login');
+    }
+  });
+
+  it('routes nested adminer.php to the adminer login decoy', () => {
+    for (const p of ['/adminer/adminer.php', '/admin/adminer.php', '/tools/db/adminer.php']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('adminer');
+      expect(m?.template, p).toBe('adminer-login');
+    }
+  });
+
+  it('routes .svn working-copy metadata: entries decoy, everything else 404', () => {
+    const entries = findPatternBait('/.svn/entries');
+    expect(entries?.category).toBe('config-leak');
+    expect(entries?.subcategory).toBe('svn');
+    expect(entries?.template).toBe('fake-svn-entries');
+    expect(findPatternBait('/app/.svn/entries')?.template).toBe('fake-svn-entries');
+    for (const p of ['/.svn/wc.db', '/.svn/', '/.svn/pristine/ab/abcd.svn-base']) {
+      const m = findPatternBait(p);
+      expect(m?.subcategory, p).toBe('svn');
+      expect(m?.template, p).toBe('not-found');
     }
   });
 
