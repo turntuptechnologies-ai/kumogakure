@@ -213,11 +213,56 @@ describe('bait patterns', () => {
       '/server_info.php',
       '/server_status.php',
       '/sub/php_info.php',
+      // php version / underscore-extensionless variants (2026-07-08 sweep)
+      '/php_version.php',
+      '/php-version.php',
+      '/php_info',
+      '/phpversion',
+      '/php-version',
+      '/php_version',
     ]) {
       const m = findPatternBait(p);
-      expect(m?.category).toBe('config-leak');
-      expect(m?.subcategory).toBe('phpinfo');
-      expect(m?.template).toBe('phpinfo');
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('phpinfo');
+      expect(m?.template, p).toBe('phpinfo');
+    }
+  });
+
+  it('routes the app runtime-config JSON sweep to the json-config decoy', () => {
+    for (const p of [
+      '/config.json',
+      '/config.production.json',
+      '/config.prod.json',
+      '/config.local.json',
+      '/config.dev.json',
+      '/config.development.json',
+      '/configs.json',
+      '/configuration.json',
+      '/settings.json',
+      '/production.json',
+      '/assets/configs.json',
+      '/assets/config.production.json',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('js-config');
+      expect(m?.template, p).toBe('fake-json-config');
+    }
+    // must not swallow other .json manifests (their own entries / unknown)
+    for (const p of ['/package.json', '/composer.json', '/swagger.json', '/manifest.json']) {
+      expect(findPatternBait(p)?.template, p).not.toBe('fake-json-config');
+    }
+  });
+
+  it('routes the Nextcloud AppAPI get_log_file traversal-to-passwd to fake-etc-passwd', () => {
+    for (const p of [
+      '/index.php/apps/app_api/proxy/flow/api/w/nextcloud/jobs_u/get_log_file/..%25252f..%25252fetc%25252fpasswd',
+      '/apps/app_api/proxy/x/get_log_file/..%252f..%252fetc%252fpasswd',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('nextcloud');
+      expect(m?.template, p).toBe('fake-etc-passwd');
     }
   });
 

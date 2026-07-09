@@ -27,6 +27,7 @@ import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeAwsCredentialsJson } from './fake-aws-credentials-json.js';
 import { fakeBoto } from './fake-boto.js';
 import { fakeEnv } from './fake-env.js';
+import { fakeEtcPasswd } from './fake-etc-passwd.js';
 import { fakeFtpConfig } from './fake-ftp-config.js';
 import { fakeGcpServiceAccountKey } from './fake-gcp-service-account-key.js';
 import { fakeGitConfig } from './fake-git-config.js';
@@ -39,6 +40,7 @@ import { fakeGitignore } from './fake-gitignore.js';
 import { fakeGitlabCi } from './fake-gitlab-ci.js';
 import { fakeGitmodules } from './fake-gitmodules.js';
 import { fakeJsConfig } from './fake-js-config.js';
+import { fakeJsonConfig } from './fake-json-config.js';
 import { fakeNetrc } from './fake-netrc.js';
 import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePackageJson } from './fake-package-json.js';
@@ -154,6 +156,8 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitmodules': fakeGitmodules,
   'fake-gitlab-ci': fakeGitlabCi,
   'fake-js-config': fakeJsConfig,
+  'fake-json-config': fakeJsonConfig,
+  'fake-etc-passwd': fakeEtcPasswd,
   'fake-wlwmanifest': fakeWlwmanifest,
   'fake-gcp-service-account-key': fakeGcpServiceAccountKey,
   'swagger-ui-html': swaggerUiHtml,
