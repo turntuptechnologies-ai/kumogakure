@@ -373,4 +373,20 @@ describe('Worker routing', () => {
     const wcdb = await SELF.fetch('http://example.test/.svn/wc.db');
     expect(wcdb.status).toBe(404);
   });
+
+  it('serves the JSON runtime-config decoy for a config.<env>.json probe', async () => {
+    const response = await SELF.fetch('http://example.test/config.production.json');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    const json = (await response.json()) as { apiBaseUrl: string };
+    expect(json.apiBaseUrl).toBeTruthy();
+  });
+
+  it('serves a fake /etc/passwd for the Nextcloud AppAPI traversal LFI', async () => {
+    const response = await SELF.fetch(
+      'http://example.test/index.php/apps/app_api/proxy/flow/api/w/nextcloud/jobs_u/get_log_file/..%25252f..%25252fetc%25252fpasswd',
+    );
+    expect(response.status).toBe(200);
+    expect(await response.text()).toMatch(/^root:x:0:0:/);
+  });
 });

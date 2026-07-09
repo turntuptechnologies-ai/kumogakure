@@ -301,6 +301,21 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'js-config',
     template: 'fake-js-config',
   },
+  // App runtime-config JSON that SPAs/services ship — `config.json`,
+  // `config.<env>.json`, `configuration.json`, `configs.json`,
+  // `settings.json`, `production.json`, at any depth (root, `assets/`, …).
+  // The JSON sibling of the config.js / env.js sweep above; scanners spray
+  // the well-known names for cleartext backend URLs / API keys. Basename
+  // allowlist keeps it off unrelated `.json` (package.json, composer.json,
+  // swagger.json, appsettings.json all have their own earlier entries and
+  // are not in this set). Served the fake-json-config decoy.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
+    category: 'config-leak',
+    subcategory: 'js-config',
+    template: 'fake-json-config',
+  },
   // FTP/SFTP deploy-credential config files — scanners spray dozens of
   // naming/extension variants hunting for host/user/password in cleartext
   // (CWE-200 / CWE-538). Two patterns cover the family (case-insensitive
@@ -350,13 +365,14 @@ export const patternBait: PatternEntry[] = [
   // (first-match wins).
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)\.php$/,
+      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-version|php_version|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)\.php$/,
     category: 'config-leak',
     subcategory: 'phpinfo',
     template: 'phpinfo',
   },
   {
-    pattern: /^\/(?:[^/]+\/)*(?:phpinfo|php-info|info)$/,
+    pattern:
+      /^\/(?:[^/]+\/)*(?:phpinfo|php-info|php_info|phpversion|php-version|php_version|info)$/,
     category: 'config-leak',
     subcategory: 'phpinfo',
     template: 'phpinfo',
@@ -373,6 +389,18 @@ export const patternBait: PatternEntry[] = [
     category: 'cve-recon',
     subcategory: 'owncloud',
     template: 'phpinfo',
+  },
+  // Nextcloud AppAPI exApp-proxy `get_log_file` arbitrary file read — the
+  // log path is unsanitised, so `..%252f`-style (often multiply-encoded, e.g.
+  // `..%25252f`) traversal escapes to any file; scanners target `/etc/passwd`.
+  // `URL.pathname` preserves the percent-encoding, so we match the AppAPI
+  // proxy `get_log_file` fingerprint followed by a `passwd`-terminated
+  // traversal, and serve a believable /etc/passwd (leaks nothing real).
+  {
+    pattern: /^\/(?:index\.php\/)?apps\/app_api\/proxy\/.+\/get_log_file\/.+passwd$/i,
+    category: 'cve-recon',
+    subcategory: 'nextcloud',
+    template: 'fake-etc-passwd',
   },
   // PHPUnit `eval-stdin.php` pre-auth RCE — CVE-2017-9841. The bundled
   // test helper evaluates the POST body as PHP. Canonical path is
