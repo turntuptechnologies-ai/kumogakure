@@ -389,4 +389,17 @@ describe('Worker routing', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toMatch(/^root:x:0:0:/);
   });
+
+  it('serves the git config decoy for a subdirectory .git/config probe', async () => {
+    const response = await SELF.fetch('http://example.test/api/.git/config');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('[core]');
+  });
+
+  it('serves the WP debug-log decoy at wp-content/debug.log', async () => {
+    const response = await SELF.fetch('http://example.test/wp-content/debug.log');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/plain');
+    expect(await response.text()).toContain('/var/www/html/wp-');
+  });
 });

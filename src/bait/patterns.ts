@@ -26,6 +26,16 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'adminer',
     template: 'adminer-login',
   },
+  // WordPress `wp-content/debug.log` (WP_DEBUG_LOG left on in production),
+  // at any depth. Distinct from the wp-content webshell `.php` pattern below
+  // (`.log`, not executable) — this is a source/error disclosure decoy that
+  // leaks web root, plugin/theme names, and DB structure.
+  {
+    pattern: /^\/(?:[^/]+\/)*wp-content\/debug\.log$/,
+    category: 'config-leak',
+    subcategory: 'wordpress',
+    template: 'fake-wp-debug-log',
+  },
   {
     pattern: /^\/wp-content\/.+\.(php|phtml)$/,
     category: 'webshell',
@@ -364,8 +374,14 @@ export const patternBait: PatternEntry[] = [
   // and wp-includes .php stay webshell via the earlier patterns
   // (first-match wins).
   {
+    // Leading `[0-9._-]*` and trailing `s?` + the `i` flag absorb the
+    // name-fuzzing scanners spray around the core probe names (`5info.php`,
+    // `_info.php`, `02-info.php`, `0.0_phpinfo.php`, `00_server_info.php`,
+    // `infos.php`, `1_1_PhpInfo.php`, …). The prefix class is digits/dots/
+    // underscores/hyphens only, so alphabetic lookalikes (`userinfo.php`) do
+    // NOT get absorbed.
     pattern:
-      /^\/(?:[^/]+\/)*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-version|php_version|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)\.php$/,
+      /^\/(?:[^/]+\/)*[0-9._-]*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-version|php_version|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)s?\.php$/i,
     category: 'config-leak',
     subcategory: 'phpinfo',
     template: 'phpinfo',
@@ -618,8 +634,26 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'git',
     template: 'fake-gitmodules',
   },
+  // `.git/config` and `.git/HEAD` at ANY depth — scanners spray the repo
+  // metadata under many dir prefixes (`/app/.git/config`, `/api/.git/config`,
+  // `/wp-content/.git/config`, …), not just the web root. The root paths are
+  // explicit catalog entries (checked first); these serve the same decoys
+  // for the subdirectory forms. Matched ahead of the `.git/<other>` 404
+  // catch-all below.
   {
-    pattern: /^\/\.git\/.+/,
+    pattern: /^\/(?:[^/]+\/)*\.git\/config$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-git-config',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.git\/HEAD$/,
+    category: 'config-leak',
+    subcategory: 'git',
+    template: 'fake-git-head',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.git\/.+/,
     category: 'config-leak',
     subcategory: 'git',
     template: 'not-found',

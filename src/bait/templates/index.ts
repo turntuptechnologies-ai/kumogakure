@@ -51,6 +51,7 @@ import { fakeSvnEntries } from './fake-svn-entries.js';
 import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
+import { fakeWpDebugLog } from './fake-wp-debug-log.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
@@ -117,6 +118,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-git-config': fakeGitConfig,
   'fake-git-head': fakeGitHead,
   'fake-wp-config': fakeWpConfig,
+  'fake-wp-debug-log': fakeWpDebugLog,
   'fake-aws-credentials': fakeAwsCredentials,
   'fake-aws-credentials-json': fakeAwsCredentialsJson,
   'fake-server-status': fakeServerStatus,
