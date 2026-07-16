@@ -220,11 +220,52 @@ describe('bait patterns', () => {
       '/phpversion',
       '/php-version',
       '/php_version',
+      // name-fuzzing prefixes/suffixes/case (2026-07-15 sweep)
+      '/5info.php',
+      '/_info.php',
+      '/02-info.php',
+      '/0.0_phpinfo.php',
+      '/00_server_info.php',
+      '/.info.php',
+      '/__info.php',
+      '/infos.php',
+      '/1_1_PhpInfo.php',
     ]) {
       const m = findPatternBait(p);
       expect(m?.category, p).toBe('config-leak');
       expect(m?.subcategory, p).toBe('phpinfo');
       expect(m?.template, p).toBe('phpinfo');
+    }
+  });
+
+  it('does not absorb alphabetic-prefixed info lookalikes as phpinfo', () => {
+    // the fuzz-prefix class is digits/dots/underscores/hyphens only
+    for (const p of ['/userinfo.php', '/businfo.php', '/moreinfo.php']) {
+      expect(findPatternBait(p)?.subcategory, p).not.toBe('phpinfo');
+    }
+  });
+
+  it('serves the git repo config/HEAD at any depth (not just the web root)', () => {
+    for (const p of ['/app/.git/config', '/api/.git/config', '/wp-content/.git/config']) {
+      expect(findPatternBait(p)?.template, p).toBe('fake-git-config');
+    }
+    for (const p of ['/app/.git/HEAD', '/staging/.git/HEAD']) {
+      expect(findPatternBait(p)?.template, p).toBe('fake-git-head');
+    }
+    // other .git/ files under a subdir still 404, like the web root
+    for (const p of ['/app/.git/index', '/api/.git/refs/heads/main']) {
+      const m = findPatternBait(p);
+      expect(m?.subcategory, p).toBe('git');
+      expect(m?.template, p).toBe('not-found');
+    }
+  });
+
+  it('routes wp-content/debug.log at any depth to the WP debug-log decoy', () => {
+    for (const p of ['/wp-content/debug.log', '/blog/wp-content/debug.log']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('wordpress');
+      expect(m?.template, p).toBe('fake-wp-debug-log');
     }
   });
 
@@ -520,12 +561,12 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-includes/foo.php')?.subcategory).toBe('wp-includes');
   });
 
-  it('keeps the existing /.git/<file> behaviour and rejects lookalikes', () => {
-    // Anchored dir pattern must NOT swallow repo-content paths.
-    const cfg = findPatternBait('/.git/config');
-    expect(cfg?.subcategory).toBe('git');
-    expect(cfg?.template).toBe('not-found');
+  it('serves .git/config + .git/HEAD, 404s other repo-content, rejects lookalikes', () => {
+    // config/HEAD get their decoys (any depth); other repo files still 404.
+    expect(findPatternBait('/.git/config')?.template).toBe('fake-git-config');
+    expect(findPatternBait('/.git/HEAD')?.template).toBe('fake-git-head');
     expect(findPatternBait('/.git/refs/heads/main')?.template).toBe('not-found');
+    expect(findPatternBait('/.git/index')?.template).toBe('not-found');
     for (const p of ['/.gitignorex', '/foo.gitmodules', '/gitignore', '/.gitfoo']) {
       expect(findPatternBait(p)).toBeUndefined();
     }
@@ -535,9 +576,9 @@ describe('bait patterns', () => {
     expect(findPatternBait('/foo.gitconfig')).toBeUndefined();
     expect(findPatternBait('/gitconfig')).toBeUndefined();
     expect(findPatternBait('/.gitconfigx')).toBeUndefined();
-    // The existing .git/ repo family is unchanged (different filename).
+    // The .git/ repo family still routes to the git subcategory.
     expect(findPatternBait('/.git/config')?.subcategory).toBe('git');
-    expect(findPatternBait('/.git/config')?.template).toBe('not-found');
+    expect(findPatternBait('/.git/config')?.template).toBe('fake-git-config');
   });
 
   it('does not over-match generic .php names as phpinfo', () => {
