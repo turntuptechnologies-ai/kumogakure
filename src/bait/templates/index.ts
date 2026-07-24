@@ -56,6 +56,7 @@ import { fakeWpConfig } from './fake-wp-config.js';
 import { fakeWpDebugLog } from './fake-wp-debug-log.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
+import { goExpvar } from './go-expvar.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
 import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
@@ -211,6 +212,7 @@ const templates: Record<string, TemplateFn> = {
   'django-debug-toolbar': djangoDebugToolbar,
   'fake-terraform-tfvars': fakeTerraformTfvars,
   'serverless-yml': serverlessYml,
+  'go-expvar': goExpvar,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

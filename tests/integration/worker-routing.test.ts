@@ -450,4 +450,17 @@ describe('Worker routing', () => {
     const json = (await response.json()) as { openapi: string };
     expect(json.openapi).toBe('3.0.3');
   });
+
+  it('serves the Go expvar decoy at /debug/vars', async () => {
+    const response = await SELF.fetch('http://example.test/debug/vars');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/json');
+    const json = (await response.json()) as {
+      cmdline: string[];
+      memstats: { NumGC: number; BySize: unknown[] };
+    };
+    expect(json.cmdline.length).toBeGreaterThan(0);
+    expect(json.memstats.NumGC).toBeGreaterThan(0);
+    expect(json.memstats.BySize.length).toBeGreaterThan(0);
+  });
 });
