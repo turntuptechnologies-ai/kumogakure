@@ -268,6 +268,15 @@ describe('bait catalog', () => {
     }
   });
 
+  it('routes /debug/vars to the Go expvar decoy', () => {
+    const entry = findExplicitBait('/debug/vars');
+    expect(entry?.category).toBe('cve-recon');
+    expect(entry?.subcategory).toBe('go-expvar');
+    expect(entry?.template).toBe('go-expvar');
+    // Exact-path only: it must not shadow the Yii2 debug route next to it.
+    expect(findExplicitBait('/debug/default/view')?.subcategory).toBe('yii2-debug');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

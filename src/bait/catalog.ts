@@ -344,6 +344,18 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'yii2-debug',
     template: 'yii2-debug',
   },
+  // Go `expvar` — importing the package (often transitively, or alongside
+  // net/http/pprof) registers `/debug/vars` on http.DefaultServeMux, so any
+  // service that serves its default mux to the internet publishes the process
+  // argv and full runtime memory statistics unauthenticated. CWE-200 +
+  // CWE-489, and a reliable "Go service on its default mux" fingerprint. No
+  // single product CVE, same as the two debug dashboards above.
+  {
+    path: '/debug/vars',
+    category: 'cve-recon',
+    subcategory: 'go-expvar',
+    template: 'go-expvar',
+  },
   // Exchange /ecp/ ClickOnce eDiscovery Export Tool manifest. Used as
   // a fingerprint that the /ecp/ surface is reachable, then exploited
   // via the SSRF + post-auth RCE chains that share that surface:
