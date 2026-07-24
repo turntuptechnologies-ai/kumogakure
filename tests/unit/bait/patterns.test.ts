@@ -1154,6 +1154,114 @@ describe('bait patterns', () => {
     expect(findPatternBait('/src/Util/PHP/eval-stdin.php')?.subcategory).not.toBe('phpunit');
   });
 
+  it('routes Terraform .tfvars variable files at any depth to their decoy', () => {
+    for (const p of [
+      '/terraform.tfvars',
+      '/terraform.tfvars.json',
+      '/prod.tfvars',
+      '/prod.auto.tfvars',
+      '/terraform.auto.tfvars.json',
+      '/infra/terraform.tfvars',
+      '/deploy/terraform/envs/production/terraform.tfvars',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('terraform');
+      expect(m?.template, p).toBe('fake-terraform-tfvars');
+    }
+  });
+
+  it('does not serve the tfvars decoy for other Terraform artefacts', () => {
+    // tfstate is a different format (JSON state, not HCL values) and has no
+    // decoy yet; main.tf / variables.tf carry no values worth a decoy.
+    for (const p of [
+      '/terraform.tfstate',
+      '/terraform.tfstate.backup',
+      '/main.tf',
+      '/variables.tf',
+    ]) {
+      expect(findPatternBait(p)?.template, p).not.toBe('fake-terraform-tfvars');
+    }
+  });
+
+  it('routes serverless.yml at any depth to the Serverless Framework decoy', () => {
+    for (const p of ['/serverless.yml', '/serverless.yaml', '/api/serverless.yml']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('serverless-framework');
+      expect(m?.template, p).toBe('serverless-yml');
+    }
+  });
+
+  it('routes .github/workflows/*.yml at any depth to the Actions workflow decoy', () => {
+    for (const p of [
+      '/.github/workflows/deploy.yml',
+      '/.github/workflows/ci.yaml',
+      '/.github/workflows/release-please.yml',
+      '/app/.github/workflows/deploy.yml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('github-actions');
+      expect(m?.template, p).toBe('fake-github-workflow');
+    }
+  });
+
+  it('does not confuse .github/ with the .git/ repo-metadata family', () => {
+    // .github is a normal directory; only workflow YAML under it is baited.
+    expect(findPatternBait('/.github/dependabot.yml')).toBeUndefined();
+    expect(findPatternBait('/.github/workflows/')).toBeUndefined();
+    expect(findPatternBait('/.github/workflows/deploy.yml')?.subcategory).not.toBe('git');
+  });
+
+  it('routes the camelCase GCP service-account key basenames to the key decoy', () => {
+    for (const p of [
+      '/serviceAccountKey.json',
+      '/serviceAccount.json',
+      '/config/serviceAccountKey.json',
+      // pre-existing spellings must keep working
+      '/service-account.json',
+      '/firebase-adminsdk.json',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('cloud-credentials');
+      expect(m?.template, p).toBe('fake-gcp-service-account-key');
+    }
+  });
+
+  it('routes Django split-settings modules to the settings.py decoy', () => {
+    for (const p of [
+      '/settings.py',
+      '/local_settings.py',
+      '/settings_local.py',
+      '/prod_settings.py',
+      '/base_settings.py',
+      '/config/local_settings.py',
+      '/myproject/settings.py',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('django-settings');
+      expect(m?.template, p).toBe('django-settings');
+    }
+  });
+
+  it('keeps the settings.py affix list closed', () => {
+    for (const p of ['/user_settings.py', '/mysettings.py', '/settings_backup.py']) {
+      expect(findPatternBait(p)?.template, p).not.toBe('django-settings');
+    }
+  });
+
+  it('routes env.json to the runtime JSON-config decoy', () => {
+    for (const p of ['/env.json', '/env.prod.json', '/assets/env.json', '/ENV.json']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('js-config');
+      expect(m?.template, p).toBe('fake-json-config');
+    }
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });

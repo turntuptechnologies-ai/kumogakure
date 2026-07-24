@@ -36,6 +36,7 @@ import { fakeGitDirListing } from './fake-git-dir-listing.js';
 import { fakeGitHead } from './fake-git-head.js';
 import { fakeGitattributes } from './fake-gitattributes.js';
 import { fakeGitconfig } from './fake-gitconfig.js';
+import { fakeGithubWorkflow } from './fake-github-workflow.js';
 import { fakeGitignore } from './fake-gitignore.js';
 import { fakeGitlabCi } from './fake-gitlab-ci.js';
 import { fakeGitmodules } from './fake-gitmodules.js';
@@ -48,6 +49,7 @@ import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
 import { fakeSvnEntries } from './fake-svn-entries.js';
+import { fakeTerraformTfvars } from './fake-terraform-tfvars.js';
 import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
@@ -70,6 +72,7 @@ import { phpinfo } from './phpinfo.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { phpunitEvalStdin } from './phpunit-eval-stdin.js';
 import { rankmathGethead } from './rankmath-gethead.js';
+import { serverlessYml } from './serverless-yml.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
@@ -157,6 +160,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-gitattributes': fakeGitattributes,
   'fake-gitmodules': fakeGitmodules,
   'fake-gitlab-ci': fakeGitlabCi,
+  'fake-github-workflow': fakeGithubWorkflow,
   'fake-js-config': fakeJsConfig,
   'fake-json-config': fakeJsonConfig,
   'fake-etc-passwd': fakeEtcPasswd,
@@ -205,6 +209,8 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-rest-root': wordpressRestRoot,
   'wordpress-oembed': wordpressOembed,
   'django-debug-toolbar': djangoDebugToolbar,
+  'fake-terraform-tfvars': fakeTerraformTfvars,
+  'serverless-yml': serverlessYml,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

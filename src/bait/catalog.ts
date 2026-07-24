@@ -382,6 +382,23 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'openapi',
     template: 'swagger-fake',
   },
+  // The OpenAPI 3.x default document name (`/openapi.json`) and springdoc's
+  // default served path (`/v3/api-docs`) — the two spellings scanners try
+  // alongside `/swagger.json`, which is the Swagger 2.0-era name. The
+  // `swagger-fake` decoy already returns a 3.0.3 document, so these are a
+  // routing gap only, not a new template.
+  {
+    path: '/openapi.json',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-fake',
+  },
+  {
+    path: '/v3/api-docs',
+    category: 'api-recon',
+    subcategory: 'openapi',
+    template: 'swagger-fake',
+  },
   // Swagger UI HTML entrypoints — the SpringFox / springdoc-openapi /
   // webjars conventions all settle on small variants of the same page.
   {

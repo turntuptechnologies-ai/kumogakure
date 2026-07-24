@@ -259,6 +259,15 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('wordpress-user-sitemap');
   });
 
+  it('routes the OpenAPI 3.x document paths to the shared spec decoy', () => {
+    for (const path of ['/openapi.json', '/v3/api-docs', '/swagger.json']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category, path).toBe('api-recon');
+      expect(entry?.subcategory, path).toBe('openapi');
+      expect(entry?.template, path).toBe('swagger-fake');
+    }
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

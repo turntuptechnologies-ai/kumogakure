@@ -402,4 +402,52 @@ describe('Worker routing', () => {
     expect(response.headers.get('content-type')).toContain('text/plain');
     expect(await response.text()).toContain('/var/www/html/wp-');
   });
+
+  it('serves the Terraform tfvars decoy at /terraform.tfvars', async () => {
+    const response = await SELF.fetch('http://example.test/terraform.tfvars');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/plain');
+    expect(await response.text()).toContain('db_password');
+  });
+
+  it('serves the Serverless Framework decoy at /serverless.yml', async () => {
+    const response = await SELF.fetch('http://example.test/serverless.yml');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('yaml');
+    expect(await response.text()).toMatch(/^provider:/m);
+  });
+
+  it('serves the Actions workflow decoy at /.github/workflows/deploy.yml', async () => {
+    const response = await SELF.fetch('http://example.test/.github/workflows/deploy.yml');
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('yaml');
+    expect(await response.text()).toMatch(/^jobs:$/m);
+  });
+
+  it('serves the GCP key decoy for the camelCase serviceAccountKey.json spelling', async () => {
+    const response = await SELF.fetch('http://example.test/serviceAccountKey.json');
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { type: string };
+    expect(json.type).toBe('service_account');
+  });
+
+  it('serves the Django settings decoy at /local_settings.py', async () => {
+    const response = await SELF.fetch('http://example.test/local_settings.py');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('SECRET_KEY');
+  });
+
+  it('serves the runtime JSON-config decoy at /env.json', async () => {
+    const response = await SELF.fetch('http://example.test/env.json');
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { apiBaseUrl: string };
+    expect(json.apiBaseUrl).toBeTruthy();
+  });
+
+  it('serves the OpenAPI spec decoy at /openapi.json', async () => {
+    const response = await SELF.fetch('http://example.test/openapi.json');
+    expect(response.status).toBe(200);
+    const json = (await response.json()) as { openapi: string };
+    expect(json.openapi).toBe('3.0.3');
+  });
 });
