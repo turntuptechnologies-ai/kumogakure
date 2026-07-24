@@ -313,15 +313,16 @@ export const patternBait: PatternEntry[] = [
   },
   // App runtime-config JSON that SPAs/services ship — `config.json`,
   // `config.<env>.json`, `configuration.json`, `configs.json`,
-  // `settings.json`, `production.json`, at any depth (root, `assets/`, …).
-  // The JSON sibling of the config.js / env.js sweep above; scanners spray
+  // `settings.json`, `production.json`, `env.json`, at any depth (root,
+  // `assets/`, …). The JSON sibling of the config.js / env.js sweep above
+  // (`env` closes the asymmetry with the `env.js` pattern); scanners spray
   // the well-known names for cleartext backend URLs / API keys. Basename
   // allowlist keeps it off unrelated `.json` (package.json, composer.json,
   // swagger.json, appsettings.json all have their own earlier entries and
   // are not in this set). Served the fake-json-config decoy.
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
+      /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production|env)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
     category: 'config-leak',
     subcategory: 'js-config',
     template: 'fake-json-config',
@@ -490,12 +491,15 @@ export const patternBait: PatternEntry[] = [
   // GCP service-account JSON key files. Operators routinely commit
   // these under varied basenames (keyfile.json, service-account.json,
   // firebase-adminsdk.json, application_default_credentials.json, …).
-  // Final segment must match a known basename + `.json`; any depth.
-  // Same credential-theft class as the .aws/* and .git-credentials
-  // family, so this is `cloud-credentials` subcategory.
+  // `serviceAccountKey` / `serviceAccount` are the camelCase spellings —
+  // the name the Firebase console gives an Admin SDK private key on
+  // download, and consequently the most-committed one. Final segment must
+  // match a known basename + `.json`; any depth. Same credential-theft
+  // class as the .aws/* and .git-credentials family, so this is
+  // `cloud-credentials` subcategory.
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:keyfile|key|google-key|firebase-key|firebase-adminsdk|service-account|sa|google-credentials|gcp-sa|gcp-key|gcp-credentials|credentials|application_default_credentials)\.json$/,
+      /^\/(?:[^/]+\/)*(?:keyfile|key|google-key|firebase-key|firebase-adminsdk|service-account|serviceAccountKey|serviceAccount|sa|google-credentials|gcp-sa|gcp-key|gcp-credentials|credentials|application_default_credentials)\.json$/,
     category: 'config-leak',
     subcategory: 'cloud-credentials',
     template: 'fake-gcp-service-account-key',
@@ -584,12 +588,61 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'gitlab-ci',
     template: 'fake-gitlab-ci',
   },
+  // GitHub Actions workflow definitions under `.github/workflows/`, at any
+  // depth. The GitHub sibling of `.gitlab-ci.yml` above and the same CWE-200
+  // class — deploy topology, registry hosts, environment names, and any
+  // secret inlined instead of referenced through `secrets.*`. Matched on the
+  // directory, not on the filename, so it is not tied to the `deploy.yml`
+  // spelling scanners happen to try first (`ci.yml`, `release.yaml`, …).
+  // Own subcategory: distinct product from GitLab CI, and distinct from the
+  // `.git*` repo-metadata family further down (which never matches
+  // `.github/` — `\.git\/` cannot span the `hub` in `.github/`).
+  {
+    pattern: /^\/(?:[^/]+\/)*\.github\/workflows\/[^/]+\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'github-actions',
+    template: 'fake-github-workflow',
+  },
+  // Terraform variable-definition files at any depth — `terraform.tfvars`,
+  // `prod.tfvars`, `*.auto.tfvars`, and the `.tfvars.json` form. Convention
+  // puts exactly the values that must stay out of version control here (DB
+  // passwords, cloud credentials, API tokens), which is why every published
+  // Terraform .gitignore lists it and why scanners sweep for it when a repo
+  // or build directory is served as static files. The `.tfvars` extension is
+  // Terraform-specific, so a bare extension match carries no false-positive
+  // risk. `terraform.tfstate` is deliberately NOT covered here (not observed;
+  // it needs its own JSON decoy, not this HCL one).
+  {
+    pattern: /^\/(?:[^/]+\/)*[^/]+\.tfvars(?:\.json)?$/,
+    category: 'config-leak',
+    subcategory: 'terraform',
+    template: 'fake-terraform-tfvars',
+  },
+  // Serverless Framework service definition `serverless.yml` / `.yaml` at any
+  // depth. `provider.environment` is the idiomatic place to put runtime
+  // config, so real services routinely leave plaintext database URLs and API
+  // keys in it; the IAM statements, queue/table/bucket ARNs, and handler list
+  // additionally map the deployment. Same disclosure class as the
+  // docker-compose / spring-config entries, own product subcategory.
+  {
+    pattern: /^\/(?:[^/]+\/)*serverless\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'serverless-framework',
+    template: 'serverless-yml',
+  },
   // Django `settings.py` at any depth (e.g. `/settings.py`,
   // `/<project>/settings.py`, `/config/settings.py`). Exposes
   // `SECRET_KEY`, `DATABASES['default']`, and `EMAIL_HOST_PASSWORD`
   // when served as source. CWE-200 / CWE-538 disclosure class.
+  // The split-settings convention (`base_settings.py` +
+  // `local_settings.py` / `prod_settings.py`, or the `settings_local.py`
+  // suffix spelling) is covered too — `local_settings.py` is specifically
+  // the file that holds the values kept out of version control, so it is
+  // the higher-value read of the family. The affix list is a closed
+  // allowlist, so unrelated basenames (`user_settings.py`) do not match.
   {
-    pattern: /^\/(?:[^/]+\/)*settings\.py$/,
+    pattern:
+      /^\/(?:[^/]+\/)*(?:(?:local|base|common|dev|development|prod|production|staging|test)_)?settings(?:_(?:local|base|common|dev|development|prod|production|staging|test))?\.py$/,
     category: 'config-leak',
     subcategory: 'django-settings',
     template: 'django-settings',
