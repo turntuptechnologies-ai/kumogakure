@@ -1262,6 +1262,196 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes the .sql dump sweep to the mysqldump decoy', () => {
+    for (const p of [
+      '/database.sql',
+      '/backup.sql',
+      '/dump.sql',
+      '/db.sql',
+      '/db_backup.sql',
+      '/site.sql',
+      '/website.sql',
+      '/data.sql',
+      '/mysql.sql',
+      '/backup/database.sql',
+      '/backup/dump.sql',
+      '/bak/database.sql',
+      '/wp-content/mysql.sql',
+      '/DATABASE.SQL',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('sql-dump');
+      expect(m?.template, p).toBe('fake-sql-dump');
+    }
+  });
+
+  it('classifies the site-archive sweep without serving an archive', () => {
+    for (const p of [
+      '/backup.tar.gz',
+      '/site.tar.gz',
+      '/html.tar.gz',
+      '/public_html.tar.gz',
+      '/www.tar.gz',
+      '/htdocs.tar.gz',
+      '/backup.zip',
+      '/site.zip',
+      '/web.zip',
+      '/releases/app.tgz',
+      '/dump.tar.bz2',
+      '/archive.7z',
+      // A compressed dump is an archive first — policy §A.4 bars serving it.
+      '/backup.sql.gz',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('site-archive');
+      expect(m?.template, p).toBe('not-found');
+    }
+  });
+
+  it('routes each CI/CD pipeline product to its own subcategory', () => {
+    const cases: Array<[string, string]> = [
+      ['/.travis.yml', 'travis-ci'],
+      ['/.travis.yaml', 'travis-ci'],
+      ['/.circleci/config.yml', 'circleci'],
+      ['/.circleci/config.yaml', 'circleci'],
+      ['/.drone.yml', 'drone-ci'],
+      ['/.drone.yaml', 'drone-ci'],
+      ['/bitbucket-pipelines.yml', 'bitbucket-pipelines'],
+      ['/bitbucket-pipelines.yaml', 'bitbucket-pipelines'],
+      ['/.buildkite/pipeline.yml', 'buildkite'],
+      ['/.buildkite/pipeline.yaml', 'buildkite'],
+      ['/.buildkite/pipeline.staging.yml', 'buildkite'],
+      ['/azure-pipelines.yml', 'azure-pipelines'],
+      ['/.azure-pipelines.yml', 'azure-pipelines'],
+      ['/azure-pipelines.release.yml', 'azure-pipelines'],
+    ];
+    for (const [p, sub] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe(sub);
+      expect(m?.template, p).toBe('fake-ci-pipeline');
+    }
+  });
+
+  it('routes the non-YAML repo artifacts to their own decoys', () => {
+    const cases: Array<[string, string, string]> = [
+      ['/Jenkinsfile', 'jenkins', 'fake-jenkinsfile'],
+      ['/jenkinsfile', 'jenkins', 'fake-jenkinsfile'],
+      ['/Jenkinsfile.release', 'jenkins', 'fake-jenkinsfile'],
+      ['/Dockerfile', 'dockerfile', 'fake-dockerfile'],
+      ['/Dockerfile.prod', 'dockerfile', 'fake-dockerfile'],
+      ['/docker/Dockerfile', 'dockerfile', 'fake-dockerfile'],
+      ['/Makefile', 'makefile', 'fake-makefile'],
+      ['/makefile', 'makefile', 'fake-makefile'],
+      ['/GNUmakefile', 'makefile', 'fake-makefile'],
+      ['/Procfile', 'procfile', 'fake-procfile'],
+      ['/Procfile.dev', 'procfile', 'fake-procfile'],
+      ['/app.yaml', 'gae-app-yaml', 'fake-gae-app-yaml'],
+      ['/app.yml', 'gae-app-yaml', 'fake-gae-app-yaml'],
+      ['/deploy.sh', 'deploy-script', 'fake-deploy-script'],
+      ['/release.sh', 'deploy-script', 'fake-deploy-script'],
+      ['/bin/deploy.bash', 'deploy-script', 'fake-deploy-script'],
+      ['/docker-entrypoint.sh', 'deploy-script', 'fake-deploy-script'],
+    ];
+    for (const [p, sub, tpl] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe(sub);
+      expect(m?.template, p).toBe(tpl);
+    }
+  });
+
+  it('keeps the CI/repo-artifact entries off neighbouring products', () => {
+    // Spring's application.yml, the Serverless/docker-compose configs, and the
+    // two pre-existing CI decoys must all keep their own templates.
+    const untouched: Array<[string, string]> = [
+      ['/application.yml', 'spring-application-yml'],
+      ['/config/application.yaml', 'spring-application-yml'],
+      ['/serverless.yml', 'serverless-yml'],
+      ['/docker-compose.yml', 'docker-compose-yml'],
+      ['/.gitlab-ci.yml', 'fake-gitlab-ci'],
+      ['/.github/workflows/deploy.yml', 'fake-github-workflow'],
+    ];
+    for (const [p, tpl] of untouched) {
+      expect(findPatternBait(p)?.template, p).toBe(tpl);
+    }
+    // Arbitrary shell scripts stay outside the deploy-script allowlist.
+    for (const p of ['/backup.sh', '/foo.sh', '/scripts/cleanup.sh']) {
+      expect(findPatternBait(p)?.subcategory, p).not.toBe('deploy-script');
+    }
+  });
+
+  it('routes dotless env templates to the dotenv decoy', () => {
+    for (const p of [
+      '/env.example',
+      '/env.sample',
+      '/env.dist',
+      '/env-template',
+      '/env_local',
+      '/config/env.production',
+      '/ENV.EXAMPLE',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('dotenv-variant');
+      expect(m?.template, p).toBe('fake-env');
+    }
+    // The suffix allowlist stays closed and must not steal the JS/JSON configs.
+    expect(findPatternBait('/env.js')?.template).toBe('fake-js-config');
+    expect(findPatternBait('/env.prod.js')?.template).toBe('fake-js-config');
+    expect(findPatternBait('/env.json')?.template).toBe('fake-json-config');
+    expect(findPatternBait('/environment')).toBeUndefined();
+  });
+
+  it('routes .envrc to the direnv decoy', () => {
+    for (const p of ['/.envrc', '/app/.envrc', '/srv/www/app/.envrc']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('direnv');
+      expect(m?.template, p).toBe('fake-envrc');
+    }
+    // Must not disturb the .env family it sits next to.
+    expect(findPatternBait('/.env')?.subcategory).toBe('dotenv');
+    expect(findPatternBait('/.env.production')?.subcategory).toBe('dotenv-variant');
+  });
+
+  it('splits shell rc files from shell history files', () => {
+    for (const p of [
+      '/.bashrc',
+      '/.bash_profile',
+      '/.profile',
+      '/.zshrc',
+      '/.zprofile',
+      '/home/deploy/.bashrc',
+      '/root/.bash_aliases',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('shell-rc');
+      expect(m?.template, p).toBe('fake-shell-rc');
+    }
+    for (const p of [
+      '/.bash_history',
+      '/.zsh_history',
+      '/.mysql_history',
+      '/.psql_history',
+      '/root/.bash_history',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('shell-history');
+      expect(m?.template, p).toBe('fake-shell-history');
+    }
+    // The filename allowlist is closed, and the neighbouring home-directory
+    // dotfiles keep their own credential decoys.
+    expect(findPatternBait('/.bashrc_old')?.subcategory).not.toBe('shell-rc');
+    expect(findPatternBait('/.netrc')?.template).toBe('fake-netrc');
+    expect(findPatternBait('/.npmrc')?.template).toBe('fake-npmrc');
+    expect(findPatternBait('/.gitconfig')?.template).toBe('fake-gitconfig');
+  });
+
   it('returns undefined when no pattern applies', () => {
     expect(findPatternBait('/totally/unrelated')).toBeUndefined();
   });
