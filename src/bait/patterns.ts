@@ -221,6 +221,43 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'backup',
     template: 'not-found',
   },
+  // Site-archive sweep — `backup.tar.gz`, `public_html.tar.gz`, `site.zip`,
+  // `web.zip`, and the rest of the "someone left the release tarball in the
+  // web root" family. Deliberately Tier 3 (`not-found`): serving a real
+  // archive would violate docs/RESPONSE_TEMPLATE_POLICY.md §A.4, which bars
+  // returning anything that could exploit a decompression bug in whatever
+  // unpacks it. The entry exists so these land in `config-leak/site-archive`
+  // in the rollups instead of `unknown` — the same disposition, and the same
+  // reasoning, as the `.bak`/`.swp` backup family above.
+  //
+  // Matched on the archive extension alone, at any depth and any basename:
+  // there is no legitimate archive to shadow on a honeypot, so an extension
+  // match carries no false-positive cost and generalises past whichever
+  // basenames a given campaign happens to try. Compound extensions need no
+  // special case — `.tar.gz` ends in `.gz`, `.tar.bz2` ends in `.bz2`.
+  {
+    pattern: /^\/(?:[^/]+\/)*[^/]+\.(?:zip|rar|7z|tar|tgz|tbz2?|txz|gz|bz2|xz|zst)$/i,
+    category: 'config-leak',
+    subcategory: 'site-archive',
+    template: 'not-found',
+  },
+  // Database dumps left in the web root — `/database.sql`, `/backup.sql`,
+  // `/dump.sql`, `/db_backup.sql`, `/backup/dump.sql`, `/wp-content/mysql.sql`,
+  // … (CWE-200 / CWE-538). A retrievable dump is the highest-engagement
+  // disclosure in this class: the scanner that pulls one acts on what is
+  // inside it, and that follow-up is the behaviour worth capturing.
+  //
+  // Matched on the `.sql` extension at any depth rather than a basename
+  // allowlist — same reasoning as the archive entry above (no legitimate
+  // `.sql` to shadow, and campaigns rotate the basenames). Ordered *after*
+  // the archive pattern so a compressed dump (`backup.sql.gz`) correctly
+  // takes the Tier 3 404 rather than being served this SQL text.
+  {
+    pattern: /^\/(?:[^/]+\/)*[^/]+\.sql$/i,
+    category: 'config-leak',
+    subcategory: 'sql-dump',
+    template: 'fake-sql-dump',
+  },
   {
     pattern: /^\/\.env\..+$/,
     category: 'config-leak',
@@ -280,6 +317,37 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'dotenv-variant',
     template: 'fake-env',
+  },
+  // Dotless env templates — `env.example`, `env.sample`, `env.dist`,
+  // `env-template`, `env_local`, … at any depth. The `.env.<suffix>` pattern
+  // above only covers the leading-dot spelling (`.env.example`), so the
+  // equally common dotless form was falling through. Same disclosure class,
+  // and the reason scanners want it is that the "template" file is routinely
+  // committed with the real values still in it.
+  //
+  // The suffix list is a closed allowlist so this cannot swallow unrelated
+  // basenames, and every alternative is anchored at end-of-string — `env.js`
+  // and `env.prod.js` therefore stay with the js-config decoy below, and
+  // `env.json` stays with the JSON-config decoy.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*env[-_.](?:example|sample|template|dist|default|local|dev|development|prod|production|staging|test)$/i,
+    category: 'config-leak',
+    subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
+  // direnv's `.envrc` at any depth — the `export`-form sibling of the `.env`
+  // family. Its own subcategory and template because it is a distinct
+  // product with a distinct file shape: direnv evaluates `.envrc` as shell,
+  // so a real one mixes `export` assignments with `layout` / `dotenv_if_exists`
+  // / `PATH_add` directives rather than reading as a flat KEY=value list.
+  // Worth covering separately from `.env` because `.envrc` is far less often
+  // in a project's .gitignore, so it leaks more.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.envrc$/,
+    category: 'config-leak',
+    subcategory: 'direnv',
+    template: 'fake-envrc',
   },
   // CakePHP DebugKit `_environment` endpoint, exposed in production
   // dumps $_ENV. Covers the bare `/_environment` and the CakePHP-
@@ -529,6 +597,34 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'package-registry-credentials',
     template: 'fake-pypirc',
   },
+  // Login-shell rc files at any depth — swept when a web root is
+  // misconfigured to sit inside a home directory, or when a traversal has
+  // already landed the scanner there. Same home-dir dotfile family as
+  // `.netrc` / `.gitconfig` / `.npmrc` above, and the same reason: an rc file
+  // is where an operator exports the credentials they want available at an
+  // interactive prompt — registry tokens, cloud keys, `PGPASSWORD` —
+  // because that beats reaching for a keyring (CWE-200 / CWE-798). Closed
+  // filename allowlist, final segment exact.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*\.(?:bashrc|bash_profile|bash_login|bash_logout|bash_aliases|profile|zshrc|zprofile|zshenv|zlogin|kshrc|cshrc|tcshrc|login)$/,
+    category: 'config-leak',
+    subcategory: 'shell-rc',
+    template: 'fake-shell-rc',
+  },
+  // Shell / client history files — the higher-value half of the same family,
+  // so its own subcategory: an rc file discloses what an operator configured,
+  // a history file discloses what they actually ran, including any password
+  // passed on a command line (`mysql -p…`) and the hosts it was passed to
+  // (CWE-200 / CWE-532). Covers the shell histories and the database/REPL
+  // client histories that sit beside them.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*\.(?:bash_history|zsh_history|sh_history|ksh_history|history|mysql_history|psql_history|python_history|node_repl_history|rediscli_history)$/,
+    category: 'config-leak',
+    subcategory: 'shell-history',
+    template: 'fake-shell-history',
+  },
   // Spring Boot `application.yml` / `application.yaml`. Scanners hit
   // it at every plausible classpath depth (`/application.yml`,
   // `/config/application.yml`, `/src/main/resources/application.yml`,
@@ -602,6 +698,117 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'github-actions',
     template: 'fake-github-workflow',
+  },
+  // The rest of the YAML CI/CD pipeline products, swept in one batch
+  // alongside `.gitlab-ci.yml` and `.github/workflows/*` above and carrying
+  // the same CWE-200 payload — deploy topology, internal registry hosts,
+  // environment names, and whatever secret was inlined instead of referenced
+  // through the product's masked-variable mechanism.
+  //
+  // One subcategory per product (the taxonomy rule: category = activity,
+  // subcategory = product), all served by `fake-ci-pipeline`, which selects
+  // the product-correct document from the matched subcategory. Serving one
+  // generic YAML shape for all six would read wrong to a scanner that parses
+  // what it fetched: these schemas have nothing in common at the top level.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.travis\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'travis-ci',
+    template: 'fake-ci-pipeline',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.circleci\/config\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'circleci',
+    template: 'fake-ci-pipeline',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*\.drone\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'drone-ci',
+    template: 'fake-ci-pipeline',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*bitbucket-pipelines\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'bitbucket-pipelines',
+    template: 'fake-ci-pipeline',
+  },
+  // Buildkite keeps its pipeline under `.buildkite/`, so — like the
+  // `.github/workflows/` entry — this matches on the directory rather than
+  // on the `pipeline.yml` spelling a given repo happens to use.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.buildkite\/[^/]+\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'buildkite',
+    template: 'fake-ci-pipeline',
+  },
+  // Azure Pipelines is committed as `azure-pipelines.yml` at the root, but
+  // the dot-prefixed spelling and the multi-pipeline suffix form
+  // (`azure-pipelines.release.yml`) are both in the wild.
+  {
+    pattern: /^\/(?:[^/]+\/)*\.?azure-pipelines(?:\.[^./]+)?\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'azure-pipelines',
+    template: 'fake-ci-pipeline',
+  },
+  // Jenkins pipelines are Groovy, not YAML, so they get their own decoy
+  // rather than a branch of `fake-ci-pipeline`. Case-insensitive because
+  // both `Jenkinsfile` and `jenkinsfile` are sprayed, and the optional
+  // suffix covers the multibranch convention (`Jenkinsfile.release`).
+  {
+    pattern: /^\/(?:[^/]+\/)*jenkinsfile(?:\.[^/]+)?$/i,
+    category: 'config-leak',
+    subcategory: 'jenkins',
+    template: 'fake-jenkinsfile',
+  },
+  // Build/deploy artifacts scanners sweep in the same batch as the CI
+  // configs, on the hypothesis that the whole repo is being served as static
+  // files. Each is a real disclosure in its own right: a Dockerfile pins base
+  // images (CVE-matching input) and is where build-time secrets get baked in
+  // via ARG/ENV; a Makefile's variable block names the registry, deploy host,
+  // and database; `app.yaml`'s `env_variables:` is where App Engine runtime
+  // secrets live. `Procfile` carries no secrets but discloses the process
+  // model — it is here for coherence, since a host that answers Dockerfile
+  // and Makefile but 404s Procfile is inconsistent.
+  {
+    pattern: /^\/(?:[^/]+\/)*dockerfile(?:\.[^/]+)?$/i,
+    category: 'config-leak',
+    subcategory: 'dockerfile',
+    template: 'fake-dockerfile',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*(?:gnu)?makefile$/i,
+    category: 'config-leak',
+    subcategory: 'makefile',
+    template: 'fake-makefile',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*procfile(?:\.[^/]+)?$/i,
+    category: 'config-leak',
+    subcategory: 'procfile',
+    template: 'fake-procfile',
+  },
+  // App Engine service descriptor. Exactly `app.yaml` / `app.yml` — Spring's
+  // `application.ya?ml` is a different product with its own decoy above and
+  // does not overlap (the basename must be `app`, not `application`).
+  {
+    pattern: /^\/(?:[^/]+\/)*app\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'gae-app-yaml',
+    template: 'fake-gae-app-yaml',
+  },
+  // Deploy / release shell scripts — the highest-value member of this family
+  // after the CI configs. A deploy script names the target hosts, the SSH key
+  // path, the rsync layout, and the registry, and it is where a password most
+  // often ends up hardcoded rather than read from the environment (CWE-200 /
+  // CWE-798). Closed basename allowlist so this stays off arbitrary `.sh`.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*(?:deploy|deployment|release|publish|install|setup|build|start|run|(?:docker-)?entrypoint)\.(?:sh|bash)$/i,
+    category: 'config-leak',
+    subcategory: 'deploy-script',
+    template: 'fake-deploy-script',
   },
   // Terraform variable-definition files at any depth — `terraform.tfvars`,
   // `prod.tfvars`, `*.auto.tfvars`, and the `.tfvars.json` form. Convention

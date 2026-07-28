@@ -26,9 +26,14 @@ import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeAwsCredentialsJson } from './fake-aws-credentials-json.js';
 import { fakeBoto } from './fake-boto.js';
+import { fakeCiPipeline } from './fake-ci-pipeline.js';
+import { fakeDeployScript } from './fake-deploy-script.js';
+import { fakeDockerfile } from './fake-dockerfile.js';
 import { fakeEnv } from './fake-env.js';
+import { fakeEnvrc } from './fake-envrc.js';
 import { fakeEtcPasswd } from './fake-etc-passwd.js';
 import { fakeFtpConfig } from './fake-ftp-config.js';
+import { fakeGaeAppYaml } from './fake-gae-app-yaml.js';
 import { fakeGcpServiceAccountKey } from './fake-gcp-service-account-key.js';
 import { fakeGitConfig } from './fake-git-config.js';
 import { fakeGitCredentials } from './fake-git-credentials.js';
@@ -40,14 +45,20 @@ import { fakeGithubWorkflow } from './fake-github-workflow.js';
 import { fakeGitignore } from './fake-gitignore.js';
 import { fakeGitlabCi } from './fake-gitlab-ci.js';
 import { fakeGitmodules } from './fake-gitmodules.js';
+import { fakeJenkinsfile } from './fake-jenkinsfile.js';
 import { fakeJsConfig } from './fake-js-config.js';
 import { fakeJsonConfig } from './fake-json-config.js';
+import { fakeMakefile } from './fake-makefile.js';
 import { fakeNetrc } from './fake-netrc.js';
 import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePackageJson } from './fake-package-json.js';
+import { fakeProcfile } from './fake-procfile.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
 import { fakeServerStatus } from './fake-server-status.js';
+import { fakeShellHistory } from './fake-shell-history.js';
+import { fakeShellRc } from './fake-shell-rc.js';
+import { fakeSqlDump } from './fake-sql-dump.js';
 import { fakeSvnEntries } from './fake-svn-entries.js';
 import { fakeTerraformTfvars } from './fake-terraform-tfvars.js';
 import { fakeVscodeSftp } from './fake-vscode-sftp.js';
@@ -213,6 +224,17 @@ const templates: Record<string, TemplateFn> = {
   'fake-terraform-tfvars': fakeTerraformTfvars,
   'serverless-yml': serverlessYml,
   'go-expvar': goExpvar,
+  'fake-sql-dump': fakeSqlDump,
+  'fake-ci-pipeline': fakeCiPipeline,
+  'fake-jenkinsfile': fakeJenkinsfile,
+  'fake-dockerfile': fakeDockerfile,
+  'fake-makefile': fakeMakefile,
+  'fake-procfile': fakeProcfile,
+  'fake-gae-app-yaml': fakeGaeAppYaml,
+  'fake-deploy-script': fakeDeployScript,
+  'fake-envrc': fakeEnvrc,
+  'fake-shell-rc': fakeShellRc,
+  'fake-shell-history': fakeShellHistory,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

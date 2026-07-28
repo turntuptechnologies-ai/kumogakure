@@ -463,4 +463,70 @@ describe('Worker routing', () => {
     expect(json.memstats.NumGC).toBeGreaterThan(0);
     expect(json.memstats.BySize.length).toBeGreaterThan(0);
   });
+
+  it('serves the mysqldump decoy for a served .sql dump', async () => {
+    for (const path of ['/database.sql', '/backup/dump.sql', '/wp-content/mysql.sql']) {
+      const response = await SELF.fetch(`http://example.test${path}`);
+      expect(response.status, path).toBe(200);
+      const text = await response.text();
+      expect(text, path).toContain('-- MySQL dump');
+      expect(text, path).toContain('INSERT INTO `wp_users` VALUES');
+    }
+  });
+
+  it('404s a compressed dump rather than serving an archive', async () => {
+    // Policy §A.4 — the archive pattern is ordered ahead of the .sql one so
+    // `backup.sql.gz` takes the Tier 3 404 instead of the SQL body.
+    for (const path of ['/backup.sql.gz', '/public_html.tar.gz', '/site.zip']) {
+      const response = await SELF.fetch(`http://example.test${path}`);
+      expect(response.status, path).toBe(404);
+      expect(await response.text(), path).toBe('Not Found');
+    }
+  });
+
+  it('serves each CI product its own pipeline schema end to end', async () => {
+    const cases: Array<[string, RegExp]> = [
+      ['/.travis.yml', /^language: node_js$/m],
+      ['/.circleci/config.yml', /^version: 2\.1$/m],
+      ['/.drone.yml', /^kind: pipeline$/m],
+      ['/bitbucket-pipelines.yml', /^pipelines:$/m],
+      ['/.buildkite/pipeline.yml', /docker-login#v/],
+      ['/azure-pipelines.yml', /^ {2}vmImage: ubuntu-latest$/m],
+    ];
+    for (const [path, marker] of cases) {
+      const response = await SELF.fetch(`http://example.test${path}`);
+      expect(response.status, path).toBe(200);
+      expect(await response.text(), path).toMatch(marker);
+    }
+  });
+
+  it('serves the repo build artifacts scanners sweep alongside the CI configs', async () => {
+    const cases: Array<[string, string]> = [
+      ['/Jenkinsfile', 'pipeline {'],
+      ['/Dockerfile', 'FROM node:'],
+      ['/Makefile', '.DEFAULT_GOAL := help'],
+      ['/Procfile', 'web: gunicorn'],
+      ['/app.yaml', 'env_variables:'],
+      ['/deploy.sh', '#!/usr/bin/env bash'],
+    ];
+    for (const [path, marker] of cases) {
+      const response = await SELF.fetch(`http://example.test${path}`);
+      expect(response.status, path).toBe(200);
+      expect(await response.text(), path).toContain(marker);
+    }
+  });
+
+  it('serves the home-directory dotfile decoys', async () => {
+    const cases: Array<[string, string]> = [
+      ['/.envrc', 'layout node'],
+      ['/.bashrc', 'HISTCONTROL='],
+      ['/.bash_history', 'mysqldump'],
+      ['/env.example', 'DB_PASSWORD='],
+    ];
+    for (const [path, marker] of cases) {
+      const response = await SELF.fetch(`http://example.test${path}`);
+      expect(response.status, path).toBe(200);
+      expect(await response.text(), path).toContain(marker);
+    }
+  });
 });
