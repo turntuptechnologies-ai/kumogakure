@@ -975,6 +975,31 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'atlassian-jira',
     template: 'jira-pom-properties',
   },
+  // Same `/s/<token>/_/;` static-resource filter bypass as the Jira
+  // pom.properties fingerprint above, here aimed at the container
+  // deployment descriptor instead: /s/<token>/_/;/WEB-INF/web.xml.
+  // Must be checked before the bare any-depth WEB-INF/web.xml pattern
+  // below, since that broader pattern's `[^/]+` segments also match
+  // this wrapper.
+  {
+    pattern: /^\/s\/[^/]+\/_\/;\/WEB-INF\/web\.xml$/,
+    category: 'cve-recon',
+    subcategory: 'atlassian-webxml',
+    template: 'atlassian-webxml',
+  },
+  // Bare (or any-depth-prefixed) `WEB-INF/web.xml` with no bypass
+  // wrapper. Servlet containers block `/WEB-INF/*` unconditionally at
+  // the mapper level — no admin misconfiguration serves this without a
+  // bypass technique like the one above — so an unwrapped request
+  // realistically 404s regardless of the app behind it. Tier 3
+  // (`not-found`); the entry exists to land this in
+  // `config-leak/java-webxml` in the rollups instead of `unknown`.
+  {
+    pattern: /^\/(?:[^/]+\/)*WEB-INF\/web\.xml$/,
+    category: 'config-leak',
+    subcategory: 'java-webxml',
+    template: 'not-found',
+  },
   // Django Debug Toolbar endpoints under the `__debug__/` namespace
   // (render_panel, sql_select, sql_explain, template_source,
   // history_sidebar, …). DjDT shipped with DEBUG=True in production

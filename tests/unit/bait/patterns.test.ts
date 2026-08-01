@@ -746,6 +746,32 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes the Atlassian /s/<token>/_/; bypass onto WEB-INF/web.xml to the atlassian-webxml decoy', () => {
+    for (const p of [
+      '/s/vbpkqw/_/;/WEB-INF/web.xml',
+      '/s/8373e26393e21323e2430313/_/;/WEB-INF/web.xml',
+      '/s/x/_/;/WEB-INF/web.xml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('atlassian-webxml');
+      expect(m?.template, p).toBe('atlassian-webxml');
+    }
+  });
+
+  it('404s bare / any-depth WEB-INF/web.xml with no bypass wrapper', () => {
+    for (const p of [
+      '/WEB-INF/web.xml',
+      '/app/WEB-INF/web.xml',
+      '/some/deep/path/WEB-INF/web.xml',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('java-webxml');
+      expect(m?.template, p).toBe('not-found');
+    }
+  });
+
   it('routes Docker Registry V2 tags/list to the docker-registry decoy', () => {
     for (const p of [
       // All 7 observed gap paths (the repositories /v2/_catalog advertises).

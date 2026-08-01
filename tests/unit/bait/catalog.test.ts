@@ -42,6 +42,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('fake-env');
   });
 
+  it('routes /artisan to the Laravel artisan decoy', () => {
+    const entry = findExplicitBait('/artisan');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('laravel-artisan');
+    expect(entry?.template).toBe('fake-artisan');
+  });
+
   it('routes the WordPress sitemap index to its decoy', () => {
     const entry = findExplicitBait('/wp-sitemap.xml');
     expect(entry?.category).toBe('cms-auth');

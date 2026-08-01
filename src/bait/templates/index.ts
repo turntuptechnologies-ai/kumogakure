@@ -3,6 +3,7 @@ import { adminerLogin } from './adminer-login.js';
 import { apiHealth } from './api-health.js';
 import { aspnetTrace } from './aspnet-trace.js';
 import { aspnetWebConfig } from './aspnet-web-config.js';
+import { atlassianWebxml } from './atlassian-webxml.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
@@ -22,6 +23,7 @@ import { drupalLogin } from './drupal-login.js';
 import { drupalSettingsPhp } from './drupal-settings-php.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
+import { fakeArtisan } from './fake-artisan.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
 import { fakeAwsCredentialsJson } from './fake-aws-credentials-json.js';
@@ -235,6 +237,8 @@ const templates: Record<string, TemplateFn> = {
   'fake-envrc': fakeEnvrc,
   'fake-shell-rc': fakeShellRc,
   'fake-shell-history': fakeShellHistory,
+  'fake-artisan': fakeArtisan,
+  'atlassian-webxml': atlassianWebxml,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
