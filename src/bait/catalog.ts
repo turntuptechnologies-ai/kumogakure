@@ -266,6 +266,17 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'js-package-manifest',
     template: 'fake-package-json',
   },
+  // Laravel's `artisan` CLI bootstrap script served over HTTP — surfaces
+  // when the document root is pointed at the project root instead of
+  // `public/`. Stock framework boilerplate, but confirms the
+  // misconfiguration (and that `.env` at the same root is very likely
+  // fetchable too). Tier 2.
+  {
+    path: '/artisan',
+    category: 'config-leak',
+    subcategory: 'laravel-artisan',
+    template: 'fake-artisan',
+  },
 
   // cve-recon
   {
