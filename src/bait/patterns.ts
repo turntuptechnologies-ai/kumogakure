@@ -521,8 +521,20 @@ export const patternBait: PatternEntry[] = [
   // (.aws/credentials, .s3cfg, .boto) go to `cloud-credentials`;
   // .aws/config is structural so it stays `aws`. The old exact
   // /.aws/credentials catalog entry was removed in favour of these.
+  //
+  // `.aws/credentials` and `.aws/config` use `^\/+` (one-or-more) rather
+  // than the usual single `^\/` — observed alongside a leading-double-slash
+  // WAF/path-normalisation-bypass burst (`//.aws/credentials`,
+  // `//home/user/.aws/credentials`, `//config/.aws/credentials`,
+  // `//.aws/config`, all from one source in one window). Cloudflare does
+  // not normalise a doubled leading slash out of `URL.pathname`, so the
+  // strict single-slash anchor was silently missing these; same
+  // bypass-technique generalisation as the Atlassian `/s/<token>/_/;` entry
+  // above. Every other any-depth pattern in this file keeps the plain
+  // `^\/` anchor — this widening is scoped to the two paths the bypass was
+  // actually observed targeting.
   {
-    pattern: /^\/(?:[^/]+\/)*\.aws\/credentials$/,
+    pattern: /^\/+(?:[^/]+\/)*\.aws\/credentials$/,
     category: 'config-leak',
     subcategory: 'cloud-credentials',
     template: 'fake-aws-credentials',
@@ -540,7 +552,7 @@ export const patternBait: PatternEntry[] = [
     template: 'fake-boto',
   },
   {
-    pattern: /^\/(?:[^/]+\/)*\.aws\/config$/,
+    pattern: /^\/+(?:[^/]+\/)*\.aws\/config$/,
     category: 'config-leak',
     subcategory: 'aws',
     template: 'fake-aws-config',
@@ -853,6 +865,49 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'django-settings',
     template: 'django-settings',
+  },
+  // CodeIgniter/Laravel `config/database.php` at any depth — the
+  // subdirectory-discovered sibling of the root `/database.php` &
+  // `/db.php` explicit catalog entries above. Same content family, so
+  // reuse the same Laravel-authentic decoy rather than the generic PHP
+  // config-directory one below. Must be ordered before the generic
+  // pattern so `database.php` doesn't fall through to it (both never
+  // share the "database" basename, but keeping the more specific route
+  // first is the established convention in this file).
+  {
+    pattern: /^\/(?:[^/]+\/)*config\/database\.php$/,
+    category: 'config-leak',
+    subcategory: 'php-db-config',
+    template: 'php-database-config',
+  },
+  // Generic CodeIgniter/Laravel PHP config-directory sweep: `config.php`,
+  // `conf.php`, and the `config/{smtp,credentials,mail,mailer,email,api,
+  // services,keys,app}.php` basenames observed swept together in one
+  // scan burst, plus the `admin/config.php` and `local.config.php`
+  // affixed spellings. The optional `[a-z0-9]+[._-]` prefix group (same
+  // technique as the ftp-credentials pattern above) absorbs the
+  // in-segment affix forms (`local.config.php`) without a separate
+  // directory level; `(?:[^/]+\/)*` covers the directory forms
+  // (`admin/config.php`, `config/mail.php`). `database` is deliberately
+  // excluded — routed to the higher-fidelity decoy above instead.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*(?:[a-z0-9]+[._-])?(?:config|conf|smtp|credentials|mail|mailer|email|api|services|keys|app)\.php$/i,
+    category: 'config-leak',
+    subcategory: 'php-config-directory',
+    template: 'fake-php-secrets-config',
+  },
+  // Flask's `instance/` folder convention — the location Flask's own docs
+  // recommend for config values "that shouldn't be committed to version
+  // control", so `instance/config.py` holds exactly the same class of
+  // secret as the root `/config.py` catalog entry. Any-depth prefix (not
+  // just the project-root `instance/`) since scanners try it under
+  // subpaths too. Shares the flask-config decoy.
+  {
+    pattern: /^\/(?:[^/]+\/)*instance\/config\.py$/,
+    category: 'config-leak',
+    subcategory: 'flask-config',
+    template: 'flask-config',
   },
   {
     pattern: /^\/cgi-bin\/.+/,

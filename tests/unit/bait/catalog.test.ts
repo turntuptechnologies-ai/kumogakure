@@ -284,6 +284,44 @@ describe('bait catalog', () => {
     expect(findExplicitBait('/debug/default/view')?.subcategory).toBe('yii2-debug');
   });
 
+  it('routes /version /about /server to the shared app-info decoy', () => {
+    for (const path of ['/version', '/about', '/server']) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category, path).toBe('api-recon');
+      expect(entry?.subcategory, path).toBe('server-info');
+      expect(entry?.template, path).toBe('fake-app-info');
+    }
+  });
+
+  it('routes /manage.py and /wsgi.py to the Django entrypoint decoys', () => {
+    const manage = findExplicitBait('/manage.py');
+    expect(manage?.category).toBe('config-leak');
+    expect(manage?.subcategory).toBe('django-entrypoint');
+    expect(manage?.template).toBe('django-manage-py');
+
+    const wsgi = findExplicitBait('/wsgi.py');
+    expect(wsgi?.category).toBe('config-leak');
+    expect(wsgi?.subcategory).toBe('django-entrypoint');
+    expect(wsgi?.template).toBe('django-wsgi-py');
+  });
+
+  it('routes /config.py, /.flaskenv, /app.py to the Flask secrets decoys', () => {
+    const config = findExplicitBait('/config.py');
+    expect(config?.category).toBe('config-leak');
+    expect(config?.subcategory).toBe('flask-config');
+    expect(config?.template).toBe('flask-config');
+
+    const flaskenv = findExplicitBait('/.flaskenv');
+    expect(flaskenv?.category).toBe('config-leak');
+    expect(flaskenv?.subcategory).toBe('flask-config');
+    expect(flaskenv?.template).toBe('fake-flaskenv');
+
+    const appPy = findExplicitBait('/app.py');
+    expect(appPy?.category).toBe('config-leak');
+    expect(appPy?.subcategory).toBe('flask-config');
+    expect(appPy?.template).toBe('flask-app-py');
+  });
+
   it('has no duplicate paths', () => {
     const paths = explicitBait.map((b) => b.path);
     expect(new Set(paths).size).toBe(paths.length);

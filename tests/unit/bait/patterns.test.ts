@@ -351,6 +351,25 @@ describe('bait patterns', () => {
     }
   });
 
+  it('routes leading-double-slash AWS credential bypass paths to the same decoys', () => {
+    for (const p of [
+      '//.aws/credentials',
+      '//home/user/.aws/credentials',
+      '//config/.aws/credentials',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('cloud-credentials');
+      expect(m?.template, p).toBe('fake-aws-credentials');
+    }
+    const config = findPatternBait('//.aws/config');
+    expect(config?.category).toBe('config-leak');
+    expect(config?.subcategory).toBe('aws');
+    expect(config?.template).toBe('fake-aws-config');
+    // Single-leading-slash behaviour is unchanged.
+    expect(findPatternBait('/.aws/credentials')?.template).toBe('fake-aws-credentials');
+  });
+
   it('routes JSON-form AWS credential files at any depth to cloud-credentials', () => {
     for (const p of [
       '/aws-credentials.json',
@@ -671,6 +690,50 @@ describe('bait patterns', () => {
       expect(m?.subcategory).toBe('django-settings');
       expect(m?.template).toBe('django-settings');
     }
+  });
+
+  it('routes any-depth instance/config.py to the Flask config decoy', () => {
+    for (const p of ['/instance/config.py', '/app/instance/config.py']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('flask-config');
+      expect(m?.template, p).toBe('flask-config');
+    }
+  });
+
+  it('routes config/database.php at any depth to the shared PHP DB-config decoy', () => {
+    for (const p of ['/config/database.php', '/app/config/database.php']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('php-db-config');
+      expect(m?.template, p).toBe('php-database-config');
+    }
+  });
+
+  it('routes the generic PHP config-directory basename family to the secrets decoy', () => {
+    for (const p of [
+      '/config.php',
+      '/conf.php',
+      '/admin/config.php',
+      '/local.config.php',
+      '/config/smtp.php',
+      '/config/credentials.php',
+      '/config/mail.php',
+      '/config/mailer.php',
+      '/config/email.php',
+      '/config/api.php',
+      '/config/services.php',
+      '/config/keys.php',
+      '/config/app.php',
+      '/app.php',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('config-leak');
+      expect(m?.subcategory, p).toBe('php-config-directory');
+      expect(m?.template, p).toBe('fake-php-secrets-config');
+    }
+    // database.php stays on the higher-fidelity decoy, not this generic one.
+    expect(findPatternBait('/config/database.php')?.template).toBe('php-database-config');
   });
 
   it('does not over-match settings.py lookalikes', () => {

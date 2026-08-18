@@ -11,7 +11,9 @@ import { composerJson } from './composer-json.js';
 import { confluenceTextInline } from './confluence-text-inline.js';
 import { cpanelLogin } from './cpanel-login.js';
 import { djangoDebugToolbar } from './django-debug-toolbar.js';
+import { djangoManagePy } from './django-manage-py.js';
 import { djangoSettings } from './django-settings.js';
+import { djangoWsgiPy } from './django-wsgi-py.js';
 import { dockerComposeYml } from './docker-compose-yml.js';
 import { dockerRegistryBase } from './docker-registry-base.js';
 import { dockerRegistryBlobs } from './docker-registry-blobs.js';
@@ -23,6 +25,7 @@ import { drupalLogin } from './drupal-login.js';
 import { drupalSettingsPhp } from './drupal-settings-php.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
+import { fakeAppInfo } from './fake-app-info.js';
 import { fakeArtisan } from './fake-artisan.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
 import { fakeAwsCredentials } from './fake-aws-credentials.js';
@@ -34,6 +37,7 @@ import { fakeDockerfile } from './fake-dockerfile.js';
 import { fakeEnv } from './fake-env.js';
 import { fakeEnvrc } from './fake-envrc.js';
 import { fakeEtcPasswd } from './fake-etc-passwd.js';
+import { fakeFlaskenv } from './fake-flaskenv.js';
 import { fakeFtpConfig } from './fake-ftp-config.js';
 import { fakeGaeAppYaml } from './fake-gae-app-yaml.js';
 import { fakeGcpServiceAccountKey } from './fake-gcp-service-account-key.js';
@@ -54,6 +58,7 @@ import { fakeMakefile } from './fake-makefile.js';
 import { fakeNetrc } from './fake-netrc.js';
 import { fakeNpmrc } from './fake-npmrc.js';
 import { fakePackageJson } from './fake-package-json.js';
+import { fakePhpSecretsConfig } from './fake-php-secrets-config.js';
 import { fakeProcfile } from './fake-procfile.js';
 import { fakePypirc } from './fake-pypirc.js';
 import { fakeS3cfg } from './fake-s3cfg.js';
@@ -67,6 +72,8 @@ import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { fakeWpDebugLog } from './fake-wp-debug-log.js';
+import { flaskAppPy } from './flask-app-py.js';
+import { flaskConfig } from './flask-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
 import { goExpvar } from './go-expvar.js';
@@ -239,6 +246,13 @@ const templates: Record<string, TemplateFn> = {
   'fake-shell-history': fakeShellHistory,
   'fake-artisan': fakeArtisan,
   'atlassian-webxml': atlassianWebxml,
+  'fake-app-info': fakeAppInfo,
+  'django-manage-py': djangoManagePy,
+  'django-wsgi-py': djangoWsgiPy,
+  'flask-config': flaskConfig,
+  'fake-flaskenv': fakeFlaskenv,
+  'flask-app-py': flaskAppPy,
+  'fake-php-secrets-config': fakePhpSecretsConfig,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {
