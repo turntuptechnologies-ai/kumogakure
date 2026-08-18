@@ -277,6 +277,50 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'laravel-artisan',
     template: 'fake-artisan',
   },
+  // Django `manage.py` / `wsgi.py` CLI + WSGI entrypoints, served over
+  // HTTP under the same class of document-root misconfiguration as
+  // `/artisan` above. Stock `startproject` boilerplate — no secrets — but
+  // confirms the misconfiguration and that `settings.py` is very likely
+  // fetchable too.
+  {
+    path: '/manage.py',
+    category: 'config-leak',
+    subcategory: 'django-entrypoint',
+    template: 'django-manage-py',
+  },
+  {
+    path: '/wsgi.py',
+    category: 'config-leak',
+    subcategory: 'django-entrypoint',
+    template: 'django-wsgi-py',
+  },
+  // Flask secrets family: `config.py` (the `Config` object most Flask
+  // apps import), `.flaskenv` (the python-dotenv file `flask run`
+  // auto-loads), and `app.py` (Flask's own quickstart entrypoint name,
+  // where small apps hardcode `app.secret_key` directly). All three were
+  // observed in the same probe burst as manage.py/wsgi.py above — one
+  // scanner sweeping both Django and Flask naming conventions.
+  // `instance/config.py` (Flask's own recommended location for secrets
+  // kept out of version control) shares the config.py decoy via the
+  // any-depth pattern in patterns.ts.
+  {
+    path: '/config.py',
+    category: 'config-leak',
+    subcategory: 'flask-config',
+    template: 'flask-config',
+  },
+  {
+    path: '/.flaskenv',
+    category: 'config-leak',
+    subcategory: 'flask-config',
+    template: 'fake-flaskenv',
+  },
+  {
+    path: '/app.py',
+    category: 'config-leak',
+    subcategory: 'flask-config',
+    template: 'flask-app-py',
+  },
 
   // cve-recon
   {
@@ -455,6 +499,29 @@ export const explicitBait: BaitEntry[] = [
     template: 'graphql-introspection',
   },
   { path: '/api/v1/health', category: 'api-recon', subcategory: 'generic', template: 'api-health' },
+  // Generic app-metadata endpoints: `/version`, `/about`, `/server`.
+  // Observed as a single-burst sweep (near-identical timestamps across
+  // many sources) — a generic recon tool's "what's running here" probe
+  // rather than a product-specific fingerprint. Shared decoy branches on
+  // path to keep each response shaped like its name (see fake-app-info.ts).
+  {
+    path: '/version',
+    category: 'api-recon',
+    subcategory: 'server-info',
+    template: 'fake-app-info',
+  },
+  {
+    path: '/about',
+    category: 'api-recon',
+    subcategory: 'server-info',
+    template: 'fake-app-info',
+  },
+  {
+    path: '/server',
+    category: 'api-recon',
+    subcategory: 'server-info',
+    template: 'fake-app-info',
+  },
   // Docker Registry HTTP API V2 base / version-check endpoint. Open
   // (no-auth) registries answer `GET /v2/` with `200 {}` and the
   // `Docker-Distribution-Api-Version` header; scanners hit it first to
