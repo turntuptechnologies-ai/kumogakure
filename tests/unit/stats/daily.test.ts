@@ -99,8 +99,9 @@ describe('runDailyStats', () => {
     const ins = insertCall(calls);
     expect(ins).toBeDefined();
     expect(run).toHaveBeenCalledTimes(1);
+    if (ins === undefined) throw new Error('insert call not found');
 
-    const [date, total, uniqIps, uniqAsns, cats, paths, asns, signals] = ins?.args as [
+    const [date, total, uniqIps, uniqAsns, cats, paths, asns, signals] = ins.args as [
       string,
       number,
       number,
