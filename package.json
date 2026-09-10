@@ -22,7 +22,7 @@
   },
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
-    "hono": "^4.12.34"
+    "hono": "^4.13.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",
