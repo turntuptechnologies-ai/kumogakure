@@ -22,13 +22,13 @@
   },
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
-    "hono": "^4.12.34"
+    "hono": "^4.13.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.5",
-    "@cloudflare/vitest-pool-workers": "^0.18.8",
+    "@biomejs/biome": "^2.5.12",
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.10",
-    "wrangler": "^4.114.0"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.128.0"
   }
 }
