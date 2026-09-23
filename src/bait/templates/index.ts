@@ -25,6 +25,7 @@ import { drupalLogin } from './drupal-login.js';
 import { drupalSettingsPhp } from './drupal-settings-php.js';
 import { exchangeExporttool } from './exchange-exporttool.js';
 import { exchangeOwaLogin } from './exchange-owa-login.js';
+import { execApi } from './exec-api.js';
 import { fakeAppInfo } from './fake-app-info.js';
 import { fakeArtisan } from './fake-artisan.js';
 import { fakeAwsConfig } from './fake-aws-config.js';
@@ -33,6 +34,7 @@ import { fakeAwsCredentialsJson } from './fake-aws-credentials-json.js';
 import { fakeBoto } from './fake-boto.js';
 import { fakeCiPipeline } from './fake-ci-pipeline.js';
 import { fakeDeployScript } from './fake-deploy-script.js';
+import { fakeDockercfg } from './fake-dockercfg.js';
 import { fakeDockerfile } from './fake-dockerfile.js';
 import { fakeEnv } from './fake-env.js';
 import { fakeEnvrc } from './fake-envrc.js';
@@ -67,11 +69,13 @@ import { fakeShellHistory } from './fake-shell-history.js';
 import { fakeShellRc } from './fake-shell-rc.js';
 import { fakeSqlDump } from './fake-sql-dump.js';
 import { fakeSvnEntries } from './fake-svn-entries.js';
+import { fakeTerraformTfstate } from './fake-terraform-tfstate.js';
 import { fakeTerraformTfvars } from './fake-terraform-tfvars.js';
 import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { fakeWpDebugLog } from './fake-wp-debug-log.js';
+import { fakeYamlConfig } from './fake-yaml-config.js';
 import { flaskAppPy } from './flask-app-py.js';
 import { flaskConfig } from './flask-config.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
@@ -80,6 +84,7 @@ import { goExpvar } from './go-expvar.js';
 import { graphqlIntrospection } from './graphql-introspection.js';
 import { gravitySmtpSystemReport } from './gravity-smtp-system-report.js';
 import { hnap1 } from './hnap1.js';
+import { jenkinsConsoleText } from './jenkins-console-text.js';
 import { jiraLogin } from './jira-login.js';
 import { jiraPomProperties } from './jira-pom-properties.js';
 import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
@@ -90,14 +95,17 @@ import { memberpressMembers } from './memberpress-members.js';
 import { nextjsServerAction } from './nextjs-server-action.js';
 import { phpDatabaseConfig } from './php-database-config.js';
 import { phpinfo } from './phpinfo.js';
+import { phpmyadminConfigInc } from './phpmyadmin-config-inc.js';
 import { phpmyadminLogin } from './phpmyadmin-login.js';
 import { phpunitEvalStdin } from './phpunit-eval-stdin.js';
+import { railsDatabaseYml } from './rails-database-yml.js';
 import { rankmathGethead } from './rankmath-gethead.js';
 import { serverlessYml } from './serverless-yml.js';
 import { solrAdminCores } from './solr-admin-cores.js';
 import { springActuatorEnv } from './spring-actuator-env.js';
 import { springActuatorGeneric } from './spring-actuator-generic.js';
 import { springActuatorHealth } from './spring-actuator-health.js';
+import { springApplicationProperties } from './spring-application-properties.js';
 import { springApplicationYml } from './spring-application-yml.js';
 import { strutsLoginAction } from './struts-login-action.js';
 import { swaggerFake } from './swagger-fake.js';
@@ -253,6 +261,14 @@ const templates: Record<string, TemplateFn> = {
   'fake-flaskenv': fakeFlaskenv,
   'flask-app-py': flaskAppPy,
   'fake-php-secrets-config': fakePhpSecretsConfig,
+  'exec-api': execApi,
+  'fake-dockercfg': fakeDockercfg,
+  'fake-terraform-tfstate': fakeTerraformTfstate,
+  'fake-yaml-config': fakeYamlConfig,
+  'jenkins-console-text': jenkinsConsoleText,
+  'phpmyadmin-config-inc': phpmyadminConfigInc,
+  'rails-database-yml': railsDatabaseYml,
+  'spring-application-properties': springApplicationProperties,
 };
 
 export function getTemplate(name: TemplateName): TemplateFn {

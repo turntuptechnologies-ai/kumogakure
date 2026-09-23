@@ -2,20 +2,22 @@ import type { TemplateFn } from '../../types.js';
 
 // Tier 2 decoy for the YAML CI/CD pipeline definitions that scanners sweep
 // alongside `.gitlab-ci.yml` and `.github/workflows/*` — Travis CI, CircleCI,
-// Drone, Bitbucket Pipelines, Buildkite, and Azure Pipelines. Same CWE-200
-// class as the two existing CI decoys: the pipeline discloses deploy
-// topology (internal registry hosts, image names, deploy targets, branch
-// gating) and is the file a careless author inlines a secret into.
+// Drone, Bitbucket Pipelines, Buildkite, Azure Pipelines, and AWS CodeBuild
+// (`buildspec.yml`). Same CWE-200 class as the two existing CI decoys: the
+// pipeline discloses deploy topology (internal registry hosts, image names,
+// deploy targets, branch gating) and is the file a careless author inlines a
+// secret into.
 //
 // Each product has its own top-level schema, and a scanner's parser keys on
-// that schema, so serving one generic YAML shape for all six would read
+// that schema, so serving one generic YAML shape for all of them would read
 // wrong. `TemplateContext` carries the matched `subcategory`, so this module
 // selects the product-correct document from a fixed lookup — the branch is on
 // our own classification constant, never on attacker-controlled input.
 //
 // Every pipeline references secrets the way a real one does: through the
 // product's masked-variable mechanism (`$DOCKER_PASSWORD`, `$(registryPass)`,
-// `from_secret`), so no usable credential is disclosed. Hosts are `.invalid`.
+// `from_secret`, CodeBuild's `secrets-manager`), so no usable credential is
+// disclosed. Hosts are `.invalid`.
 
 const travis = `language: node_js
 node_js:
@@ -245,6 +247,39 @@ stages:
                   displayName: Build and push image
 `;
 
+const codebuild = `version: 0.2
+
+env:
+  variables:
+    REGISTRY_HOST: registry.internal.invalid
+    NODE_ENV: production
+  secrets-manager:
+    DB_PASSWORD: prod/app/db:password
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - npm ci
+  pre_build:
+    commands:
+      - npm run lint
+      - npm run test
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REGISTRY_HOST
+  build:
+    commands:
+      - docker build -t $REGISTRY_HOST/app:$CODEBUILD_RESOLVED_SOURCE_VERSION .
+  post_build:
+    commands:
+      - docker push $REGISTRY_HOST/app:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - printf '[{"name":"app","imageUri":"%s"}]' $REGISTRY_HOST/app:$CODEBUILD_RESOLVED_SOURCE_VERSION > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+`;
+
 const bySubcategory: Record<string, string> = {
   'travis-ci': travis,
   circleci,
@@ -252,6 +287,7 @@ const bySubcategory: Record<string, string> = {
   'bitbucket-pipelines': bitbucket,
   buildkite,
   'azure-pipelines': azure,
+  'aws-codebuild': codebuild,
 };
 
 export const fakeCiPipeline: TemplateFn = ({ subcategory }) => {

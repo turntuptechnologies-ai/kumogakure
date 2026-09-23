@@ -70,6 +70,13 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('fake-package-json');
   });
 
+  it('routes /api/config to the JSON runtime-config decoy', () => {
+    const entry = findExplicitBait('/api/config');
+    expect(entry?.category).toBe('config-leak');
+    expect(entry?.subcategory).toBe('js-config');
+    expect(entry?.template).toBe('fake-json-config');
+  });
+
   it('routes Adminer paths to the adminer login decoy', () => {
     for (const p of ['/adminer.php', '/adminer/']) {
       const entry = findExplicitBait(p);

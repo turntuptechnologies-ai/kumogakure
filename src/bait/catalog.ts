@@ -321,6 +321,16 @@ export const explicitBait: BaitEntry[] = [
     subcategory: 'flask-config',
     template: 'flask-app-py',
   },
+  // `/api/config` — an SPA's runtime-config endpoint, swept alongside the
+  // `config.json` / `secrets.json` files for the same cleartext backend URLs
+  // and API keys. Same decoy and subcategory as the JSON config-file sweep in
+  // patterns.ts, since the payload is identical.
+  {
+    path: '/api/config',
+    category: 'config-leak',
+    subcategory: 'js-config',
+    template: 'fake-json-config',
+  },
 
   // cve-recon
   {
