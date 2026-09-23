@@ -32,7 +32,9 @@ describe('fake-dockercfg', () => {
     for (const [registry, { auth }] of Object.entries(json)) {
       expect(atob(auth), registry).toBe('deploy:REDACTED_FOR_HONEYPOT');
     }
-    expect(Object.keys(json).filter((r) => !r.startsWith('https://index.docker.io'))).toEqual([
+    // Only Docker Hub's fixed auth key and a .invalid private registry.
+    expect(Object.keys(json).sort()).toEqual([
+      'https://index.docker.io/v1/',
       'registry.example.invalid',
     ]);
   });
