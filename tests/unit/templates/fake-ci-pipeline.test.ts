@@ -17,6 +17,7 @@ const products: Array<[string, string, RegExp]> = [
   ['bitbucket-pipelines', '/bitbucket-pipelines.yml', /^pipelines:$/m],
   ['buildkite', '/.buildkite/pipeline.yml', /docker-login#v/],
   ['azure-pipelines', '/azure-pipelines.yml', /^ {2}vmImage: ubuntu-latest$/m],
+  ['aws-codebuild', '/buildspec.yml', /^version: 0\.2$/m],
 ];
 
 describe('fake-ci-pipeline', () => {
@@ -49,7 +50,7 @@ describe('fake-ci-pipeline', () => {
       const text = await fakeCiPipeline(ctx(subcategory, path)).text();
       // Passwords always arrive through the product's secret mechanism.
       expect(text, subcategory).toMatch(
-        /\$DOCKER_PASSWORD|\$\(registryPassword\)|from_secret|password-env/,
+        /\$DOCKER_PASSWORD|\$\(registryPassword\)|from_secret|password-env|secrets-manager:/,
       );
       // Nothing that reads as a literal credential assignment.
       expect(text, subcategory).not.toMatch(

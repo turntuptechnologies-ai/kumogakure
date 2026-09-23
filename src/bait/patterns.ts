@@ -8,13 +8,27 @@ export const patternBait: PatternEntry[] = [
   // `phpMyAdmin-2`, …) plus `myadmin` / `mysqladmin`. The canonical
   // `/phpmyadmin/` is an explicit catalog entry (checked first); this
   // catches the rest, case-insensitively, serving the same login decoy.
-  // Root-level dir name is the fingerprint.
+  // Root-level dir name is the fingerprint. The slash-less
+  // `/phpmyadminindex.php` form is a scanner concatenation bug used for
+  // credential POSTs (hundreds of hits from a couple of sources), so it is
+  // accepted too rather than left at unknown.
   {
     pattern:
-      /^\/(?:php-?my-?admin(?:[-_.]?\d[\d.]*)?|pma|myadmin|mysql-?admin)(?:\/(?:index\.php)?)?$/i,
+      /^\/(?:php-?my-?admin(?:[-_.]?\d[\d.]*)?|pma|myadmin|mysql-?admin)(?:\/(?:index\.php)?|index\.php)?$/i,
     category: 'cms-auth',
     subcategory: 'phpmyadmin',
     template: 'phpmyadmin-login',
+  },
+  // phpMyAdmin's `config.inc.php` under the same directory aliases (and at
+  // the root, for installs unpacked straight into the docroot). Served as
+  // source it leaks `blowfish_secret` and the server / controluser
+  // credentials, so it is a config-leak, not the cms-auth login above.
+  {
+    pattern:
+      /^\/(?:(?:php-?my-?admin(?:[-_.]?\d[\d.]*)?|pma|myadmin|mysql-?admin)\/)?config\.inc\.php$/i,
+    category: 'config-leak',
+    subcategory: 'phpmyadmin-config',
+    template: 'phpmyadmin-config-inc',
   },
   // Adminer's login script under a directory (`/adminer/adminer.php`,
   // `/admin/adminer.php`) at any depth. Root `/adminer.php` & `/adminer/`
@@ -35,6 +49,20 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'wordpress',
     template: 'fake-wp-debug-log',
+  },
+  // Backup / editor copies of `wp-config.php` — `wp-config.txt`,
+  // `wp-config.php.bak`, `.old`, `.orig`, `.save`, `.swp`, `~`, … — at any
+  // depth. Unlike the live `.php` (which executes and returns nothing), a
+  // renamed copy is served as text and leaks the DB credentials and salts.
+  // Root `/wp-config.php.bak` is an explicit catalog entry; the live
+  // `wp-config.php` is deliberately not matched here. Sits above the generic
+  // backup-extension pattern, which would otherwise answer these with a 404.
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*wp-config(?:\.php)?(?:\.(?:txt|bak|backup|old|orig|save|swp|swo|tmp|dist|copy|1)|~)$/i,
+    category: 'config-leak',
+    subcategory: 'wordpress',
+    template: 'fake-wp-config',
   },
   {
     pattern: /^\/wp-content\/.+\.(php|phtml)$/,
@@ -204,6 +232,20 @@ export const patternBait: PatternEntry[] = [
     category: 'cms-auth',
     subcategory: 'wordpress-fingerprint',
     template: 'wordpress-oembed',
+  },
+  // Terraform state (`terraform.tfstate`, `*.tfstate`, and the
+  // `.tfstate.backup` Terraform writes beside it) at any depth. State stores
+  // every resource attribute in plaintext JSON — including `sensitive` ones
+  // such as DB master passwords and IAM secret keys — so it is a
+  // higher-value find than the `.tfvars` entry further down (CWE-312).
+  // Extension is Terraform-specific. Placed above the generic
+  // backup-extension pattern so `.tfstate.backup` gets the state decoy
+  // rather than that pattern's 404.
+  {
+    pattern: /^\/(?:[^/]+\/)*[^/]+\.tfstate(?:\.backup)?$/,
+    category: 'config-leak',
+    subcategory: 'terraform',
+    template: 'fake-terraform-tfstate',
   },
   {
     pattern: /^\/.*\.(bak|swp|old|orig|save|backup)$/,
@@ -379,18 +421,51 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'js-config',
     template: 'fake-js-config',
   },
+  // Docker registry credential files — the legacy `.dockercfg` and the
+  // modern `.docker/config.json` — at any depth. Both hold a base64
+  // `user:password` per registry (CWE-522; push access is a supply-chain
+  // foothold). Must precede the `config.json` sweep below, which would
+  // otherwise claim `.docker/config.json`.
+  {
+    pattern: /^\/(?:[^/]+\/)*(?:\.dockercfg|\.docker\/config\.json)$/,
+    category: 'config-leak',
+    subcategory: 'registry-credentials',
+    template: 'fake-dockercfg',
+  },
+  // ASP.NET Core environment-specific settings — `appsettings.Development.json`,
+  // `appsettings.Staging.json`, `appsettings.local.json`,
+  // `appsettings.secrets.json`, … — at any depth (root `appsettings.json` is
+  // an explicit catalog entry). The environment overlays are where real
+  // connection strings end up, so scanners sweep the common suffixes.
+  // Case-insensitive, like the IIS-served files themselves.
+  {
+    pattern: /^\/(?:[^/]+\/)*appsettings(?:\.[^/.]+)?\.json$/i,
+    category: 'config-leak',
+    subcategory: 'aspnet-config',
+    template: 'dotnet-appsettings',
+  },
+  // `web.config` in any case (`Web.config` is Visual Studio's default
+  // spelling) and at any depth — IIS treats the name case-insensitively, so
+  // scanners spray both. Root lowercase `/web.config` is an explicit catalog
+  // entry; this catches the rest.
+  {
+    pattern: /^\/(?:[^/]+\/)*web\.config$/i,
+    category: 'config-leak',
+    subcategory: 'aspnet-config',
+    template: 'aspnet-web-config',
+  },
   // App runtime-config JSON that SPAs/services ship — `config.json`,
   // `config.<env>.json`, `configuration.json`, `configs.json`,
-  // `settings.json`, `production.json`, `env.json`, at any depth (root,
-  // `assets/`, …). The JSON sibling of the config.js / env.js sweep above
-  // (`env` closes the asymmetry with the `env.js` pattern); scanners spray
-  // the well-known names for cleartext backend URLs / API keys. Basename
-  // allowlist keeps it off unrelated `.json` (package.json, composer.json,
-  // swagger.json, appsettings.json all have their own earlier entries and
-  // are not in this set). Served the fake-json-config decoy.
+  // `settings.json`, `production.json`, `env.json`, `secrets.json`, at any
+  // depth (root, `assets/`, …). The JSON sibling of the config.js / env.js
+  // sweep above (`env` closes the asymmetry with the `env.js` pattern);
+  // scanners spray the well-known names for cleartext backend URLs / API
+  // keys. Basename allowlist keeps it off unrelated `.json` (package.json,
+  // composer.json, swagger.json, appsettings.json all have their own earlier
+  // entries and are not in this set). Served the fake-json-config decoy.
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production|env)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
+      /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production|env|secrets)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
     category: 'config-leak',
     subcategory: 'js-config',
     template: 'fake-json-config',
@@ -499,6 +574,20 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'phpunit',
     template: 'phpunit-eval-stdin',
   },
+  // Command-execution HTTP endpoints — `/api/exec`, `/api/run`,
+  // `/api/command`, `/admin/exec`, … Swept by one distributed tool (dozens of
+  // sources, same second) looking for an unauthenticated "run a command" API
+  // left exposed by dev / agent tooling or an admin panel. Same intent as a
+  // planted webshell, hence `webshell`. The decoy answers with a
+  // missing-field validation error to draw out the follow-up request that
+  // carries the command; nothing is executed. Closed verb list, root-level
+  // `api/` or `admin/` only, so it stays off ordinary app routes.
+  {
+    pattern: /^\/(?:api|admin)\/(?:exec|execute|run|command|cmd)$/,
+    category: 'webshell',
+    subcategory: 'exec-api',
+    template: 'exec-api',
+  },
   // Git home-dir dotfiles at any depth (/root/, /home/<user>/, web
   // root). Distinct from the .git/ repo family below; final segment
   // must be exactly the dotfile name. .git-credentials is split to its
@@ -557,13 +646,14 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'aws',
     template: 'fake-aws-config',
   },
-  // AWS keys persisted as JSON (`aws-credentials.json` / `aws_credentials.json`)
-  // at any depth — the SDK-style camelCase counterpart to the INI
-  // `.aws/credentials` store above. Same credential-theft class. The basename
-  // `aws-credentials` is not in the GCP `*.json` allowlist below, so it would
+  // AWS keys persisted as JSON (`aws-credentials.json` / `aws_credentials.json`,
+  // and bare `aws.json` — the file aws-sdk's `loadFromPath` examples use) at
+  // any depth — the SDK-style camelCase counterpart to the INI
+  // `.aws/credentials` store above. Same credential-theft class. These
+  // basenames are not in the GCP `*.json` allowlist below, so they would
   // otherwise fall through to unknown; served the JSON-shaped AWS-creds decoy.
   {
-    pattern: /^\/(?:[^/]+\/)*aws[-_]credentials\.json$/,
+    pattern: /^\/(?:[^/]+\/)*aws(?:[-_]credentials)?\.json$/,
     category: 'config-leak',
     subcategory: 'cloud-credentials',
     template: 'fake-aws-credentials-json',
@@ -648,6 +738,15 @@ export const patternBait: PatternEntry[] = [
     category: 'config-leak',
     subcategory: 'spring-config',
     template: 'spring-application-yml',
+  },
+  // The `.properties` spelling of the same Spring Boot config, plus the
+  // profile overlays (`application-prod.properties`, …) — same misconfig,
+  // same secrets, served in properties syntax.
+  {
+    pattern: /^\/(?:[^/]+\/)*application(?:-[^/.]+)?\.properties$/,
+    category: 'config-leak',
+    subcategory: 'spring-config',
+    template: 'spring-application-properties',
   },
   // Symfony 2.x / 3.x `parameters.yml` — DB credentials, mailer SMTP
   // credentials, and the app-wide `secret`. Probed at the canonical
@@ -774,6 +873,27 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'jenkins',
     template: 'fake-jenkinsfile',
   },
+  // Jenkins build console output for common job names —
+  // `/job/<name>/lastBuild/consoleText` and the other permalink / numbered
+  // build forms, at any depth (folder jobs nest as `/job/a/job/b/...`). An
+  // anonymously readable Jenkins exposes every build log, and logs echo the
+  // env values and hosts the credentials plugin failed to mask (CWE-532).
+  {
+    pattern:
+      /^\/(?:[^/]+\/)*job\/[^/]+\/(?:lastBuild|lastSuccessfulBuild|lastFailedBuild|lastStableBuild|lastCompletedBuild|\d+)\/consoleText$/,
+    category: 'config-leak',
+    subcategory: 'jenkins',
+    template: 'jenkins-console-text',
+  },
+  // AWS CodeBuild `buildspec.yml` (and suffixed variants like
+  // `buildspec-prod.yml`) — the CodeBuild member of the YAML CI family above,
+  // served the product-correct document by `fake-ci-pipeline`.
+  {
+    pattern: /^\/(?:[^/]+\/)*buildspec(?:[-_.][^/]+)?\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'aws-codebuild',
+    template: 'fake-ci-pipeline',
+  },
   // Build/deploy artifacts scanners sweep in the same batch as the CI
   // configs, on the hypothesis that the whole repo is being served as static
   // files. Each is a real disclosure in its own right: a Dockerfile pins base
@@ -810,6 +930,38 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'gae-app-yaml',
     template: 'fake-gae-app-yaml',
   },
+  // Generic YAML secrets sweep at any depth: `config.yml` / `config.yaml`,
+  // Rails' `secrets.yml`, and the Rails / Paperclip S3 credentials file
+  // `aws.yml`. Must stay below the product-specific YAML entries above
+  // (`.circleci/config.yml` in particular), which claim their own paths
+  // first. `fake-yaml-config` picks the document from the subcategory, since
+  // the three files have unrelated schemas.
+  {
+    pattern: /^\/(?:[^/]+\/)*config\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'yaml-config',
+    template: 'fake-yaml-config',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*secrets\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'rails-secrets',
+    template: 'fake-yaml-config',
+  },
+  {
+    pattern: /^\/(?:[^/]+\/)*aws\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-yaml-config',
+  },
+  // Rails `config/database.yml` (any depth, and the bare `database.yml`) —
+  // per-environment DB credentials in cleartext when the app root is served.
+  {
+    pattern: /^\/(?:[^/]+\/)*database\.ya?ml$/,
+    category: 'config-leak',
+    subcategory: 'rails-database',
+    template: 'rails-database-yml',
+  },
   // Deploy / release shell scripts — the highest-value member of this family
   // after the CI configs. A deploy script names the target hosts, the SSH key
   // path, the rsync layout, and the registry, and it is where a password most
@@ -829,8 +981,8 @@ export const patternBait: PatternEntry[] = [
   // Terraform .gitignore lists it and why scanners sweep for it when a repo
   // or build directory is served as static files. The `.tfvars` extension is
   // Terraform-specific, so a bare extension match carries no false-positive
-  // risk. `terraform.tfstate` is deliberately NOT covered here (not observed;
-  // it needs its own JSON decoy, not this HCL one).
+  // risk. `terraform.tfstate` needs a JSON decoy, not this HCL one — it has
+  // its own entry above the generic backup-extension pattern.
   {
     pattern: /^\/(?:[^/]+\/)*[^/]+\.tfvars(?:\.json)?$/,
     category: 'config-leak',

@@ -64,7 +64,8 @@ describe('bait patterns', () => {
   });
 
   it('matches tilde-suffixed editor-backup files at any depth', () => {
-    for (const p of ['/phpinfo.php~', '/sub/wp-config.php~', '/.env~', '/app/index.php~']) {
+    // (`wp-config.php~` has its own decoy now — see the wp-config backup test.)
+    for (const p of ['/phpinfo.php~', '/sub/settings.py~', '/.env~', '/app/index.php~']) {
       const m = findPatternBait(p);
       expect(m?.category).toBe('config-leak');
       expect(m?.subcategory).toBe('backup');
@@ -1539,6 +1540,102 @@ describe('bait patterns', () => {
     expect(findPatternBait('/.netrc')?.template).toBe('fake-netrc');
     expect(findPatternBait('/.npmrc')?.template).toBe('fake-npmrc');
     expect(findPatternBait('/.gitconfig')?.template).toBe('fake-gitconfig');
+  });
+
+  // 2026-09-23 gap batch (Issue #202). Each case asserts the full
+  // (category, subcategory, template) triplet.
+  it('routes the 2026-09-23 gap-batch families to their decoys', () => {
+    const cases: Array<[string, string, string, string]> = [
+      // command-execution API sweep
+      ['/api/exec', 'webshell', 'exec-api', 'exec-api'],
+      ['/api/run', 'webshell', 'exec-api', 'exec-api'],
+      ['/api/command', 'webshell', 'exec-api', 'exec-api'],
+      ['/admin/exec', 'webshell', 'exec-api', 'exec-api'],
+      ['/api/execute', 'webshell', 'exec-api', 'exec-api'],
+      // ASP.NET config variants
+      ['/appsettings.Development.json', 'config-leak', 'aspnet-config', 'dotnet-appsettings'],
+      ['/appsettings.Staging.json', 'config-leak', 'aspnet-config', 'dotnet-appsettings'],
+      ['/appsettings.local.json', 'config-leak', 'aspnet-config', 'dotnet-appsettings'],
+      ['/appsettings.secrets.json', 'config-leak', 'aspnet-config', 'dotnet-appsettings'],
+      ['/api/appsettings.json', 'config-leak', 'aspnet-config', 'dotnet-appsettings'],
+      ['/Web.config', 'config-leak', 'aspnet-config', 'aspnet-web-config'],
+      ['/app/web.config', 'config-leak', 'aspnet-config', 'aspnet-web-config'],
+      // phpMyAdmin
+      ['/phpmyadminindex.php', 'cms-auth', 'phpmyadmin', 'phpmyadmin-login'],
+      ['/phpMyAdmin/config.inc.php', 'config-leak', 'phpmyadmin-config', 'phpmyadmin-config-inc'],
+      ['/phpmyadmin/config.inc.php', 'config-leak', 'phpmyadmin-config', 'phpmyadmin-config-inc'],
+      ['/pma/config.inc.php', 'config-leak', 'phpmyadmin-config', 'phpmyadmin-config-inc'],
+      ['/config.inc.php', 'config-leak', 'phpmyadmin-config', 'phpmyadmin-config-inc'],
+      // YAML secrets / Rails
+      ['/config.yml', 'config-leak', 'yaml-config', 'fake-yaml-config'],
+      ['/config.yaml', 'config-leak', 'yaml-config', 'fake-yaml-config'],
+      ['/app/config.yml', 'config-leak', 'yaml-config', 'fake-yaml-config'],
+      ['/secrets.yml', 'config-leak', 'rails-secrets', 'fake-yaml-config'],
+      ['/config/secrets.yml', 'config-leak', 'rails-secrets', 'fake-yaml-config'],
+      ['/aws.yml', 'config-leak', 'cloud-credentials', 'fake-yaml-config'],
+      ['/config/database.yml', 'config-leak', 'rails-database', 'rails-database-yml'],
+      ['/database.yml', 'config-leak', 'rails-database', 'rails-database-yml'],
+      // JSON secrets / AWS JSON
+      ['/secrets.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/aws.json', 'config-leak', 'cloud-credentials', 'fake-aws-credentials-json'],
+      ['/config/aws.json', 'config-leak', 'cloud-credentials', 'fake-aws-credentials-json'],
+      // Spring properties
+      ['/application.properties', 'config-leak', 'spring-config', 'spring-application-properties'],
+      [
+        '/config/application-prod.properties',
+        'config-leak',
+        'spring-config',
+        'spring-application-properties',
+      ],
+      // Terraform state
+      ['/terraform.tfstate', 'config-leak', 'terraform', 'fake-terraform-tfstate'],
+      ['/terraform.tfstate.backup', 'config-leak', 'terraform', 'fake-terraform-tfstate'],
+      ['/infra/prod.tfstate', 'config-leak', 'terraform', 'fake-terraform-tfstate'],
+      // Docker registry credentials
+      ['/.dockercfg', 'config-leak', 'registry-credentials', 'fake-dockercfg'],
+      ['/root/.docker/config.json', 'config-leak', 'registry-credentials', 'fake-dockercfg'],
+      // CI definitions / logs
+      ['/buildspec.yml', 'config-leak', 'aws-codebuild', 'fake-ci-pipeline'],
+      ['/buildspec-prod.yml', 'config-leak', 'aws-codebuild', 'fake-ci-pipeline'],
+      ['/job/prod/lastBuild/consoleText', 'config-leak', 'jenkins', 'jenkins-console-text'],
+      ['/job/deploy/lastBuild/consoleText', 'config-leak', 'jenkins', 'jenkins-console-text'],
+      ['/jenkins/job/app/42/consoleText', 'config-leak', 'jenkins', 'jenkins-console-text'],
+      [
+        '/job/team/job/api/lastSuccessfulBuild/consoleText',
+        'config-leak',
+        'jenkins',
+        'jenkins-console-text',
+      ],
+      // wp-config backup copies
+      ['/wp-config.txt', 'config-leak', 'wordpress', 'fake-wp-config'],
+      ['/wp-config.php.old', 'config-leak', 'wordpress', 'fake-wp-config'],
+      ['/blog/wp-config.php.save', 'config-leak', 'wordpress', 'fake-wp-config'],
+      ['/sub/wp-config.php~', 'config-leak', 'wordpress', 'fake-wp-config'],
+    ];
+    for (const [p, cat, sub, tpl] of cases) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe(cat);
+      expect(m?.subcategory, p).toBe(sub);
+      expect(m?.template, p).toBe(tpl);
+    }
+  });
+
+  it('keeps the 2026-09-23 widened patterns off neighbouring paths', () => {
+    // product-specific YAML keeps its own decoy
+    expect(findPatternBait('/.circleci/config.yml')?.template).toBe('fake-ci-pipeline');
+    expect(findPatternBait('/.circleci/config.yml')?.subcategory).toBe('circleci');
+    // `.docker/config.json` must not fall into the generic config.json sweep
+    expect(findPatternBait('/config.json')?.template).toBe('fake-json-config');
+    // the live wp-config.php is not treated as a backup copy
+    expect(findPatternBait('/wp-config.php')?.template).not.toBe('fake-wp-config');
+    // exec-API verbs are a closed list under root-level api/ or admin/ only
+    for (const p of ['/api/runs', '/api/v1/exec', '/app/api/exec', '/api/exec/status']) {
+      expect(findPatternBait(p)?.template, p).not.toBe('exec-api');
+    }
+    // unrelated JSON / YAML basenames stay unmatched
+    for (const p of ['/tsconfig.json', '/_config.yml', '/myaws.json']) {
+      expect(findPatternBait(p), p).toBeUndefined();
+    }
   });
 
   it('returns undefined when no pattern applies', () => {
