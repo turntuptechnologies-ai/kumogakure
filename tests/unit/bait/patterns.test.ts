@@ -1665,4 +1665,54 @@ describe('bait patterns', () => {
       expect(m?.template).toBe(tpl);
     }
   });
+
+  it('answers CMS core-directory probes like a real install', () => {
+    const cases: [string, string, string][] = [
+      ['/wp-content/', 'wordpress-fingerprint', 'cms-blank-index'],
+      ['/wp-content/plugins/', 'wordpress-fingerprint', 'cms-blank-index'],
+      ['/wp-content/plugins/akismet/', 'wordpress-fingerprint', 'cms-blank-index'],
+      ['/wp-content/themes/twentytwenty/', 'wordpress-fingerprint', 'cms-blank-index'],
+      ['/wp-admin/', 'wordpress-fingerprint', 'wordpress-admin-redirect'],
+      ['/wp-admin/network/', 'wordpress-fingerprint', 'wordpress-admin-redirect'],
+      ['/wp-admin/user/', 'wordpress-fingerprint', 'wordpress-admin-redirect'],
+      ['/wp-includes/', 'wordpress-fingerprint', 'forbidden'],
+      ['/wp-includes/js/', 'wordpress-fingerprint', 'forbidden'],
+      ['/wp-includes/PHPMailer/', 'wordpress-fingerprint', 'forbidden'],
+      ['/wp-admin/css/colors/ectoplasm/', 'wordpress-fingerprint', 'forbidden'],
+      ['/wp-content/upgrade/', 'wordpress-fingerprint', 'forbidden'],
+      ['/wp-content/plugins/woocommerce/assets/js/', 'wordpress-fingerprint', 'forbidden'],
+      ['/sites/default/', 'drupal-fingerprint', 'forbidden'],
+      ['/sites/default/files/', 'drupal-fingerprint', 'forbidden'],
+      ['/components/', 'joomla-fingerprint', 'cms-blank-index'],
+      ['/modules/', 'joomla-fingerprint', 'cms-blank-index'],
+      ['/modules/mod_simplefileuploadv1.3/elements/', 'joomla-fingerprint', 'cms-blank-index'],
+    ];
+    for (const [path, sub, tpl] of cases) {
+      const m = findPatternBait(path);
+      expect(m?.category, path).toBe('cms-auth');
+      expect(m?.subcategory, path).toBe(sub);
+      expect(m?.template, path).toBe(tpl);
+    }
+  });
+
+  it('leaves unknown CMS directories and non-presented products at 404', () => {
+    for (const p of [
+      '/wp-admin/meta/',
+      '/wp-includes/nonexistent/',
+      '/wp-content/plugins/not-a-real-plugin/',
+      '/wp-content/themes/not-a-theme/',
+      '/modules/mod_other/',
+      '/components/com_users/',
+      '/admin/fckeditor/editor/filemanager/',
+      '/js/',
+    ]) {
+      expect(findPatternBait(p), p).toBeUndefined();
+    }
+  });
+
+  it('keeps files under CMS directories on their existing routes', () => {
+    expect(findPatternBait('/wp-content/plugins/akismet/shell.php')?.category).toBe('webshell');
+    expect(findPatternBait('/wp-includes/wlwmanifest.xml')?.template).toBe('fake-wlwmanifest');
+    expect(findPatternBait('/wp-includes/js/jquery/jquery.js')).toBeUndefined();
+  });
 });

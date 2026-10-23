@@ -359,6 +359,27 @@ describe('Worker routing', () => {
     expect(await response.text()).toBe('0');
   });
 
+  it('answers WordPress core-directory probes like a real install', async () => {
+    const blank = await SELF.fetch('http://example.test/wp-content/plugins/');
+    expect(blank.status).toBe(200);
+    expect(await blank.text()).toBe('');
+
+    const redirect = await SELF.fetch('http://example.test/wp-admin/network/', {
+      redirect: 'manual',
+    });
+    expect(redirect.status).toBe(302);
+    expect(redirect.headers.get('location')).toBe(
+      'http://example.test/wp-login.php?redirect_to=http%3A%2F%2Fexample.test%2Fwp-admin%2Fnetwork%2F&reauth=1',
+    );
+
+    const denied = await SELF.fetch('http://example.test/wp-includes/js/');
+    expect(denied.status).toBe(403);
+    expect(denied.headers.get('X-Powered-By')).toContain('PHP');
+
+    const unknownDir = await SELF.fetch('http://example.test/wp-admin/meta/');
+    expect(unknownDir.status).toBe(404);
+  });
+
   it('serves the phpMyAdmin login decoy for the /pma/index.php login script', async () => {
     const response = await SELF.fetch('http://example.test/pma/index.php');
     expect(response.status).toBe(200);
