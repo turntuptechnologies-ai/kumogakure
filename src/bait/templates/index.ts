@@ -9,6 +9,7 @@ import { atlassianWebxml } from './atlassian-webxml.js';
 import { awsMetadataRole } from './aws-metadata-role.js';
 import { boaFormLogin } from './boa-form-login.js';
 import { citrixVpn } from './citrix-vpn.js';
+import { cmsBlankIndex } from './cms-blank-index.js';
 import { composerJson } from './composer-json.js';
 import { confluenceTextInline } from './confluence-text-inline.js';
 import { cpanelLogin } from './cpanel-login.js';
@@ -80,6 +81,7 @@ import { fakeWpDebugLog } from './fake-wp-debug-log.js';
 import { fakeYamlConfig } from './fake-yaml-config.js';
 import { flaskAppPy } from './flask-app-py.js';
 import { flaskConfig } from './flask-config.js';
+import { forbidden } from './forbidden.js';
 import { gcpMetadataSa } from './gcp-metadata-sa.js';
 import { gitlabSignIn } from './gitlab-sign-in.js';
 import { goExpvar } from './go-expvar.js';
@@ -119,6 +121,7 @@ import { uploadSuccess } from './upload-success.js';
 import { whmLogin } from './whm-login.js';
 import { woocommerceCustomers } from './woocommerce-customers.js';
 import { wordpressAdminAjax } from './wordpress-admin-ajax.js';
+import { wordpressAdminRedirect } from './wordpress-admin-redirect.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
@@ -145,6 +148,9 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-login': wordpressLogin,
   'wordpress-xmlrpc': wordpressXmlrpc,
   'wordpress-admin-ajax': wordpressAdminAjax,
+  'wordpress-admin-redirect': wordpressAdminRedirect,
+  'cms-blank-index': cmsBlankIndex,
+  forbidden: forbidden,
   'joomla-login': joomlaLogin,
   'phpmyadmin-login': phpmyadminLogin,
   'adminer-login': adminerLogin,

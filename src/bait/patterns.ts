@@ -1,5 +1,20 @@
 import type { PatternEntry } from '../types.js';
 
+// CMS core-directory allowlists for the directory-probe responses below.
+// Kept to real directory names (plus plugins / themes that are either
+// near-universal or observed being probed) so the honeypot does not claim
+// that every path exists — answering 200/403 for arbitrary names is a tell
+// of its own; anything outside these lists stays a 404.
+const WP_PLUGINS = 'akismet|classic-editor|contact-form-7|woocommerce|wordpress-seo';
+const WP_THEMES = 'twentytwenty(?:one|two|three|four|five)?';
+const WP_INCLUDES_DIRS =
+  'ID3|IXR|PHPMailer|Requests|SimplePie|Text|assets|block-bindings|block-patterns|' +
+  'block-supports|blocks|certificates|css|customize|fonts|html-api|images|' +
+  'interactivity-api|js|l10n|php-compat|pomo|random_compat|rest-api|sitemaps|' +
+  'sodium_compat|style-engine|theme-compat|widgets';
+const WP_ADMIN_DIRS = 'css|images|includes|js|maint';
+const WP_CONTENT_DIRS = 'cache|fonts|languages|upgrade|uploads';
+
 export const patternBait: PatternEntry[] = [
   // Common phpMyAdmin directory aliases scanners spray — the bare dir
   // (`/pma/`, `/PMA/`, `/phpMyAdmin/`) and the login script under it
@@ -98,6 +113,57 @@ export const patternBait: PatternEntry[] = [
     category: 'cms-auth',
     subcategory: 'wordpress-fingerprint',
     template: 'wordpress-id3-license',
+  },
+  // CMS core-directory probes (trailing-slash sweeps looking for open
+  // listings / installed components). Answer the way a real install with
+  // indexes disabled does, so the WordPress / Drupal / Joomla decoys stay
+  // coherent: placeholder index → 200 blank, auth-gated wp-admin index →
+  // 302 to wp-login.php, existing dir without an index → 403. Generic
+  // directory sweeps for products we do not present stay 404 (#154).
+  {
+    pattern: new RegExp(
+      `^/wp-content/(?:(?:plugins/(?:(?:${WP_PLUGINS})/)?)|(?:themes/(?:(?:${WP_THEMES})/)?))?$`,
+    ),
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'cms-blank-index',
+  },
+  {
+    pattern: /^\/wp-admin\/(?:(?:network|user)\/)?$/,
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'wordpress-admin-redirect',
+  },
+  {
+    pattern: new RegExp(
+      '^/(?:' +
+        `wp-includes/(?:(?:${WP_INCLUDES_DIRS})/(?:[^/]+/)*)?|` +
+        `wp-admin/(?:${WP_ADMIN_DIRS})/(?:[^/]+/)*|` +
+        `wp-content/(?:${WP_CONTENT_DIRS})/(?:[^/]+/)*|` +
+        `wp-content/plugins/(?:${WP_PLUGINS})/(?:[^/]+/)+|` +
+        `wp-content/themes/(?:${WP_THEMES})/(?:[^/]+/)+` +
+        ')$',
+    ),
+    category: 'cms-auth',
+    subcategory: 'wordpress-fingerprint',
+    template: 'forbidden',
+  },
+  // Drupal: sites/default/ and its files/ directory are covered by
+  // Drupal's own `.htaccess` (`Options -Indexes`) → 403.
+  {
+    pattern: /^\/sites\/default\/(?:files\/)?$/,
+    category: 'cms-auth',
+    subcategory: 'drupal-fingerprint',
+    template: 'forbidden',
+  },
+  // Joomla 3 ships a blank index.html in every directory. Core roots plus
+  // mod_simplefileupload (a known arbitrary-upload target, observed being
+  // probed at its `elements/` upload directory).
+  {
+    pattern: /^\/(?:components|modules(?:\/mod_simplefileupload[^/]*(?:\/elements)?)?)\/$/,
+    category: 'cms-auth',
+    subcategory: 'joomla-fingerprint',
+    template: 'cms-blank-index',
   },
   // WordPress REST API `wp-json/wp/v2/users/` — public, unauthenticated
   // user enumeration when the default permissions are left on.
