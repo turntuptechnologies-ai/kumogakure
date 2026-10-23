@@ -1,5 +1,7 @@
 import type { TemplateFn, TemplateName } from '../../types.js';
+import { a2aAgentCard } from './a2a-agent-card.js';
 import { adminerLogin } from './adminer-login.js';
+import { agentsJson } from './agents-json.js';
 import { apiHealth } from './api-health.js';
 import { aspnetTrace } from './aspnet-trace.js';
 import { aspnetWebConfig } from './aspnet-web-config.js';
@@ -91,6 +93,7 @@ import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
 import { laravelTelescope } from './laravel-telescope.js';
 import { mcp } from './mcp.js';
+import { mcpServerCard } from './mcp-server-card.js';
 import { memberpressMembers } from './memberpress-members.js';
 import { nextjsServerAction } from './nextjs-server-action.js';
 import { phpDatabaseConfig } from './php-database-config.js';
@@ -171,6 +174,9 @@ const templates: Record<string, TemplateFn> = {
   hnap1: hnap1,
   'boa-form-login': boaFormLogin,
   mcp: mcp,
+  'mcp-server-card': mcpServerCard,
+  'a2a-agent-card': a2aAgentCard,
+  'agents-json': agentsJson,
   'nextjs-server-action': nextjsServerAction,
   phpinfo: phpinfo,
   'phpunit-eval-stdin': phpunitEvalStdin,

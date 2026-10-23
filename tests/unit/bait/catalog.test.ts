@@ -35,6 +35,23 @@ describe('bait catalog', () => {
     expect(entry?.template).toBe('mcp');
   });
 
+  it('routes AI-agent discovery documents to their decoys', () => {
+    const cases: [string, string, string][] = [
+      ['/.well-known/mcp', 'mcp-discovery', 'mcp-server-card'],
+      ['/.well-known/mcp.json', 'mcp-discovery', 'mcp-server-card'],
+      ['/.well-known/mcp/server-card.json', 'mcp-discovery', 'mcp-server-card'],
+      ['/.well-known/agent-card.json', 'a2a-agent-card', 'a2a-agent-card'],
+      ['/.well-known/agent.json', 'a2a-agent-card', 'a2a-agent-card'],
+      ['/.well-known/agents.json', 'agents-json', 'agents-json'],
+    ];
+    for (const [path, subcategory, template] of cases) {
+      const entry = findExplicitBait(path);
+      expect(entry?.category, path).toBe('mcp-recon');
+      expect(entry?.subcategory, path).toBe(subcategory);
+      expect(entry?.template, path).toBe(template);
+    }
+  });
+
   it('routes the bare /env probe to the dotenv decoy', () => {
     const entry = findExplicitBait('/env');
     expect(entry?.category).toBe('config-leak');
