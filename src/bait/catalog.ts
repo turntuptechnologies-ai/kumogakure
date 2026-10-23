@@ -570,6 +570,46 @@ export const explicitBait: BaitEntry[] = [
 
   // mcp-recon
   { path: '/mcp', category: 'mcp-recon', subcategory: 'mcp', template: 'mcp' },
+  // AI-agent discovery documents, swept together by scanners looking for
+  // agent endpoints to drive: MCP server cards (whose transport points at
+  // the `/mcp` decoy), A2A Agent Cards (current and pre-0.3 names) and the
+  // agents.json manifest (whose source is the `/openapi.json` decoy).
+  {
+    path: '/.well-known/mcp',
+    category: 'mcp-recon',
+    subcategory: 'mcp-discovery',
+    template: 'mcp-server-card',
+  },
+  {
+    path: '/.well-known/mcp.json',
+    category: 'mcp-recon',
+    subcategory: 'mcp-discovery',
+    template: 'mcp-server-card',
+  },
+  {
+    path: '/.well-known/mcp/server-card.json',
+    category: 'mcp-recon',
+    subcategory: 'mcp-discovery',
+    template: 'mcp-server-card',
+  },
+  {
+    path: '/.well-known/agent-card.json',
+    category: 'mcp-recon',
+    subcategory: 'a2a-agent-card',
+    template: 'a2a-agent-card',
+  },
+  {
+    path: '/.well-known/agent.json',
+    category: 'mcp-recon',
+    subcategory: 'a2a-agent-card',
+    template: 'a2a-agent-card',
+  },
+  {
+    path: '/.well-known/agents.json',
+    category: 'mcp-recon',
+    subcategory: 'agents-json',
+    template: 'agents-json',
+  },
 ];
 
 const explicitByPath = new Map(explicitBait.map((entry) => [entry.path, entry]));

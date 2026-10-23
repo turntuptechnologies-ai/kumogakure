@@ -8,10 +8,10 @@ import type { TemplateFn } from '../../types.js';
 // serverInfo, `.invalid` domains, non-actionable placeholder secrets,
 // nothing harmful, and no honeypot canary.
 
-const PROTOCOL_VERSION = '2025-03-26';
-const SERVER_INFO = { name: 'ops-mcp-gateway', version: '1.4.2' };
+export const PROTOCOL_VERSION = '2025-03-26';
+export const SERVER_INFO = { name: 'ops-mcp-gateway', version: '1.4.2' };
 
-const TOOLS = [
+export const TOOLS = [
   {
     name: 'execute_command',
     description: 'Execute a shell command on the application host and return its output.',
