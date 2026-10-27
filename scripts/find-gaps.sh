@@ -2,9 +2,11 @@
 #
 # List unmatched probe paths (bait implementation gaps).
 #
-# A "gap" is a captured request that matched no catalog entry or
-# pattern, i.e. category = 'unknown' (rows that matched but return
-# 'not-found' are intentional, not gaps). The bare root '/' is excluded
+# A "gap" is a captured request with category = 'unknown': it matched
+# no catalog entry or pattern, or only the `wp-json/...` fallback, which
+# answers with WordPress's `rest_no_route` JSON 404 but deliberately
+# stays 'unknown' (rows that matched a real bait but return 'not-found'
+# are intentional, not gaps). The bare root '/' is excluded
 # as noise. Output is aggregated by (method, path) and carries NO
 # source identifiers (only a distinct-source count) so it is safe to
 # paste back for triage.

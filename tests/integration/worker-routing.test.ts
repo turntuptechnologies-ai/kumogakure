@@ -380,6 +380,21 @@ describe('Worker routing', () => {
     expect(unknownDir.status).toBe(404);
   });
 
+  it('answers the wp2shell batch route like WordPress and keeps other wp-json routes JSON', async () => {
+    const batch = await SELF.fetch('http://example.test/wp-json/batch/v1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests: [{ method: 'POST', path: '/wp/v2/posts' }] }),
+    });
+    expect(batch.status).toBe(207);
+    const json = (await batch.json()) as { responses: { status: number }[] };
+    expect(json.responses[0]?.status).toBe(401);
+
+    const noRoute = await SELF.fetch('http://example.test/wp-json/kirki/v1/forgot-password');
+    expect(noRoute.status).toBe(404);
+    expect(((await noRoute.json()) as { code: string }).code).toBe('rest_no_route');
+  });
+
   it('serves the phpMyAdmin login decoy for the /pma/index.php login script', async () => {
     const response = await SELF.fetch('http://example.test/pma/index.php');
     expect(response.status).toBe(200);

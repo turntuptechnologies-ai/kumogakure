@@ -122,11 +122,13 @@ import { whmLogin } from './whm-login.js';
 import { woocommerceCustomers } from './woocommerce-customers.js';
 import { wordpressAdminAjax } from './wordpress-admin-ajax.js';
 import { wordpressAdminRedirect } from './wordpress-admin-redirect.js';
+import { wordpressBatch } from './wordpress-batch.js';
 import { wordpressId3License } from './wordpress-id3-license.js';
 import { wordpressLogin } from './wordpress-login.js';
 import { wordpressOembed } from './wordpress-oembed.js';
 import { wordpressPluginUsers } from './wordpress-plugin-users.js';
 import { wordpressRestContent } from './wordpress-rest-content.js';
+import { wordpressRestNoRoute } from './wordpress-rest-no-route.js';
 import { wordpressRestRoot } from './wordpress-rest-root.js';
 import { wordpressSitemapIndex } from './wordpress-sitemap-index.js';
 import { wordpressUserById } from './wordpress-user-by-id.js';
@@ -148,6 +150,8 @@ const templates: Record<string, TemplateFn> = {
   'wordpress-login': wordpressLogin,
   'wordpress-xmlrpc': wordpressXmlrpc,
   'wordpress-admin-ajax': wordpressAdminAjax,
+  'wordpress-batch': wordpressBatch,
+  'wordpress-rest-no-route': wordpressRestNoRoute,
   'wordpress-admin-redirect': wordpressAdminRedirect,
   'cms-blank-index': cmsBlankIndex,
   forbidden: forbidden,

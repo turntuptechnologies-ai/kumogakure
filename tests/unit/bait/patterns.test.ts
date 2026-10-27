@@ -1715,4 +1715,53 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-includes/wlwmanifest.xml')?.template).toBe('fake-wlwmanifest');
     expect(findPatternBait('/wp-includes/js/jquery/jquery.js')).toBeUndefined();
   });
+
+  it('routes the extended plugin user / author enumeration namespaces', () => {
+    for (const p of [
+      '/wp-json/wp-user-manager/v1/users',
+      '/wp-json/users/v1/users',
+      '/wp-json/peprodev/v1/users',
+      '/wp-json/crm-memberships/v1/users',
+      '/wp-json/profilepress/v1/users',
+      '/wp-json/decent-comments/v1/authors',
+      '/wp-json/authorsy/v1/authors',
+      '/wp-json/dokan/v1/wholesale/customers',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cms-auth');
+      expect(m?.subcategory, p).toBe('wordpress-rest-users');
+      expect(m?.template, p).toBe('wordpress-plugin-users');
+    }
+  });
+
+  it('routes the wp2shell batch entry point to the batch decoy', () => {
+    for (const p of ['/wp-json/batch/v1', '/wp-json/batch/v1/', '/blog/wp-json/batch/v1']) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('cve-recon');
+      expect(m?.subcategory, p).toBe('wp2shell');
+      expect(m?.template, p).toBe('wordpress-batch');
+    }
+  });
+
+  it('answers other wp-json routes with rest_no_route but keeps them unknown', () => {
+    for (const p of [
+      '/wp-json/kirki/v1/forgot-password',
+      '/wp-json/peprodev/v1/reset-password',
+      '/wp-json/wpml/tm/v1/languages',
+      '/wp-json/webmention/1.0',
+      '/wp-json/batch/v2',
+    ]) {
+      const m = findPatternBait(p);
+      expect(m?.category, p).toBe('unknown');
+      expect(m?.template, p).toBe('wordpress-rest-no-route');
+    }
+  });
+
+  it('keeps specific wp-json routes ahead of the rest_no_route fallback', () => {
+    expect(findPatternBait('/wp-json/')?.template).toBe('wordpress-rest-root');
+    expect(findPatternBait('/wp-json/wp/v2/users')?.template).toBe('wordpress-users-api');
+    expect(findPatternBait('/wp-json/wp/v2/graphql')?.template).toBe('graphql-introspection');
+    expect(findPatternBait('/wp-json/wc/v3/customers')?.template).toBe('woocommerce-customers');
+    expect(patternBait.at(-1)?.template).toBe('wordpress-rest-no-route');
+  });
 });
