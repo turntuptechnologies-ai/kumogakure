@@ -207,17 +207,31 @@ export const patternBait: PatternEntry[] = [
   // BuddyPress / BuddyBoss / PeepSo / Youzer / Ultimate Member
   // (`um`|`ultimate-member`) `/members`, LearnDash (`ldlms`), LearnPress
   // (`lp`|`learnpress`), WP User Frontend (`wpuf`), bbPress (`bbp-api`)
-  // `/users`, and Tutor LMS `/students`. Same default-permissions account
-  // leak as core `wp/v2/users`, so the same threat model / subcategory.
+  // `/users`, and Tutor LMS `/students`; plus the profile / membership /
+  // CRM namespaces swept with them (`wp-user-manager`, `profilepress`,
+  // `peprodev`, `crm-memberships`, generic `users`), author lists
+  // (`decent-comments`, `authorsy` `/authors`) and Dokan's
+  // `/wholesale/customers`. Same default-permissions account leak as core
+  // `wp/v2/users`, so the same threat model / subcategory.
   // Namespace allowlist (not a wildcard) to avoid matching unrelated
   // plugin routes; `[^/]+\/+` prefix mirrors the core pattern's any-depth
   // handling (e.g. `/blog/wp-json/...`).
   {
     pattern:
-      /^\/(?:[^/]+\/+)*wp-json\/(?:tutor|ldlms|bbp-api|youzer|peepso|wpuf|lp|learnpress|buddyboss|buddypress|um|ultimate-member)\/v[0-9]+\/(?:users|members|students)\/?$/,
+      /^\/(?:[^/]+\/+)*wp-json\/(?:(?:tutor|ldlms|bbp-api|youzer|peepso|wpuf|lp|learnpress|buddyboss|buddypress|um|ultimate-member|wp-user-manager|profilepress|peprodev|crm-memberships|users)\/v[0-9]+\/(?:users|members|students)|(?:decent-comments|authorsy)\/v[0-9]+\/authors|dokan\/v[0-9]+\/wholesale\/customers)\/?$/,
     category: 'cms-auth',
     subcategory: 'wordpress-rest-users',
     template: 'wordpress-plugin-users',
+  },
+  // wp2shell entry point: the core REST batch route `wp-json/batch/v1`
+  // (pre-auth RCE chain, CVE-2026-63030 + CVE-2026-60137). The decoy
+  // branches on method / body like the real route. The `?rest_route=`
+  // form is query-routed and not covered here.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/batch\/v1\/?$/,
+    category: 'cve-recon',
+    subcategory: 'wp2shell',
+    template: 'wordpress-batch',
   },
   // WooCommerce REST API customer collection (`wp-json/wc/v<n>/customers`,
   // v1-v3, any depth). Unlike the plugin user-directory routes above —
@@ -1370,6 +1384,18 @@ export const patternBait: PatternEntry[] = [
     category: 'cms-auth',
     subcategory: 'wordpress',
     template: 'wordpress-xmlrpc',
+  },
+  // Fallback for every other `wp-json/...` route: WordPress's own
+  // `rest_no_route` JSON 404 rather than the plain-text stub. MUST stay the
+  // last entry so every specific wp-json route above (including the
+  // GraphQL one) wins. Category stays `unknown` on purpose: these are
+  // still uncovered routes and must keep surfacing in gap triage — only the
+  // response body changes.
+  {
+    pattern: /^\/(?:[^/]+\/+)*wp-json\/.+$/,
+    category: 'unknown',
+    subcategory: 'wordpress-rest',
+    template: 'wordpress-rest-no-route',
   },
 ];
 
