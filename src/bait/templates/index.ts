@@ -78,6 +78,7 @@ import { fakeVscodeSftp } from './fake-vscode-sftp.js';
 import { fakeWlwmanifest } from './fake-wlwmanifest.js';
 import { fakeWpConfig } from './fake-wp-config.js';
 import { fakeWpDebugLog } from './fake-wp-debug-log.js';
+import { fakeWranglerConfig } from './fake-wrangler-config.js';
 import { fakeYamlConfig } from './fake-yaml-config.js';
 import { flaskAppPy } from './flask-app-py.js';
 import { flaskConfig } from './flask-config.js';
@@ -91,6 +92,7 @@ import { hnap1 } from './hnap1.js';
 import { jenkinsConsoleText } from './jenkins-console-text.js';
 import { jiraLogin } from './jira-login.js';
 import { jiraPomProperties } from './jira-pom-properties.js';
+import { joomlaApiConfigApplication } from './joomla-api-config-application.js';
 import { joomlaConfigurationPhp } from './joomla-configuration-php.js';
 import { joomlaLogin } from './joomla-login.js';
 import { laravelTelescope } from './laravel-telescope.js';
@@ -163,6 +165,7 @@ const templates: Record<string, TemplateFn> = {
   'fake-git-config': fakeGitConfig,
   'fake-git-head': fakeGitHead,
   'fake-wp-config': fakeWpConfig,
+  'fake-wrangler-config': fakeWranglerConfig,
   'fake-wp-debug-log': fakeWpDebugLog,
   'fake-aws-credentials': fakeAwsCredentials,
   'fake-aws-credentials-json': fakeAwsCredentialsJson,
@@ -236,6 +239,7 @@ const templates: Record<string, TemplateFn> = {
   'docker-compose-yml': dockerComposeYml,
   'django-settings': djangoSettings,
   'joomla-configuration-php': joomlaConfigurationPhp,
+  'joomla-api-config-application': joomlaApiConfigApplication,
   'drupal-settings-php': drupalSettingsPhp,
   'php-database-config': phpDatabaseConfig,
   'composer-json': composerJson,

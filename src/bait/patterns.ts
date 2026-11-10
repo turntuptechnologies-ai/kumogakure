@@ -74,7 +74,7 @@ export const patternBait: PatternEntry[] = [
   // backup-extension pattern, which would otherwise answer these with a 404.
   {
     pattern:
-      /^\/(?:[^/]+\/)*wp-config(?:\.php)?(?:\.(?:txt|bak|backup|old|orig|save|swp|swo|tmp|dist|copy|1)|~)$/i,
+      /^\/(?:[^/]+\/)*wp-config(?:(?:\.php)?(?:\.(?:txt|bak|backup|old|orig|save|swp|swo|tmp|dist|copy|1)|~)|\.(?:old|bak|backup|orig|save|copy|1)\.php)$/i,
     category: 'config-leak',
     subcategory: 'wordpress',
     template: 'fake-wp-config',
@@ -440,6 +440,32 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'dotenv-variant',
     template: 'fake-env',
   },
+  // Other dotenv-shaped secret dumps: `env.txt`, `environment`, `/api/env`,
+  // a root `.secrets`, and Cloudflare Workers' local secrets file `.dev.vars`
+  // (KEY=value lines, exactly the dotenv format).
+  {
+    pattern: /^\/(?:(?:[^/]+\/)*(?:env\.txt|environment|\.dev\.vars)|api\/env|\.secrets)$/,
+    category: 'config-leak',
+    subcategory: 'dotenv-variant',
+    template: 'fake-env',
+  },
+  // Cloudflare Workers project config (`wrangler.toml` / `wrangler.json` /
+  // `wrangler.jsonc`) at any depth: account id, binding ids, `[vars]`.
+  {
+    pattern: /^\/(?:[^/]+\/)*wrangler\.(?:toml|jsonc?)$/,
+    category: 'config-leak',
+    subcategory: 'cloudflare-workers',
+    template: 'fake-wrangler-config',
+  },
+  // Joomla CVE-2023-23752 (4.0.0–4.2.7): unauthenticated config dump via the
+  // web-services API (`/api/index.php/v1/config/application?public=true`).
+  // Routing is path-only, so the `?public=true` query is not required.
+  {
+    pattern: /^\/(?:[^/]+\/)*api\/index\.php\/v1\/config\/application\/?$/,
+    category: 'cve-recon',
+    subcategory: 'joomla-cve-2023-23752',
+    template: 'joomla-api-config-application',
+  },
   // Dotless env templates — `env.example`, `env.sample`, `env.dist`,
   // `env-template`, `env_local`, … at any depth. The `.env.<suffix>` pattern
   // above only covers the leading-dot spelling (`.env.example`), so the
@@ -496,7 +522,8 @@ export const patternBait: PatternEntry[] = [
     template: 'fake-js-config',
   },
   {
-    pattern: /^\/(?:[^/]+\/+)*env(?:\.[a-z]+)?\.js$/,
+    pattern:
+      /^\/(?:[^/]+\/+)*(?:env|env-config|runtime-env|runtime-config|settings|keys)(?:\.[a-z]+)?\.js$/,
     category: 'config-leak',
     subcategory: 'js-config',
     template: 'fake-js-config',
@@ -546,6 +573,20 @@ export const patternBait: PatternEntry[] = [
   {
     pattern:
       /^\/(?:[^/]+\/)*(?:configuration|configs?|settings|production|env|secrets)(?:\.(?:prod|production|dev|development|local|staging|test|default))?\.json$/i,
+    category: 'config-leak',
+    subcategory: 'js-config',
+    template: 'fake-json-config',
+  },
+  // Wider runtime-config JSON sweep (2026-11-10 batch): more root basenames
+  // (`environment`, `application`, `app`, `secret`, `keys`, Azure Functions'
+  // `local.settings`, `*.backup` copies) and env-named files inside the usual
+  // config directories (`config/prod.json`, `settings/local.json`,
+  // `secrets/app.json`, `.config/app.json`, …). Still a closed allowlist;
+  // provider-named credential files (`secrets/gcp.json`, `keys/google.json`)
+  // are not in it and go to the GCP service-account decoy below.
+  {
+    pattern:
+      /^\/(?:(?:[^/]+\/)*(?:environment|application|app|secret|keys|local\.settings|(?:config|settings)\.backup)|(?:[^/]+\/)*(?:config|settings|secrets|\.config)\/(?:dev|development|prod|production|staging|test|local|base|default|app|application|environment|keys))\.json$/i,
     category: 'config-leak',
     subcategory: 'js-config',
     template: 'fake-json-config',
@@ -605,7 +646,7 @@ export const patternBait: PatternEntry[] = [
     // underscores/hyphens only, so alphabetic lookalikes (`userinfo.php`) do
     // NOT get absorbed.
     pattern:
-      /^\/(?:[^/]+\/)*[0-9._-]*(?:phpinfo|_phpinfo|old_phpinfo|phpversion|php-version|php_version|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)s?\.php$/i,
+      /^\/(?:[^/]+\/)*[0-9._-]*(?:phpinfo|_phpinfo|old_phpinfo|phpinf|poopinfo|info-backoffice|phpinfo\.view|phpversion|php-version|php_version|php-info|php_info|php|pinfo|pi|p|i|info|test|debug|server-status|server_status|server-info|server_info)s?\.php$/i,
     category: 'config-leak',
     subcategory: 'phpinfo',
     template: 'phpinfo',
@@ -726,6 +767,21 @@ export const patternBait: PatternEntry[] = [
     subcategory: 'aws',
     template: 'fake-aws-config',
   },
+  // The same two AWS files without the `.aws` dot-dir: a bare
+  // `/credentials` / `/.credentials`, and an `aws/` (or `config/aws/`)
+  // directory, as scanners spray them alongside the `.aws/` forms.
+  {
+    pattern: /^\/(?:(?:config\/)?aws\/credentials|\.?credentials)$/,
+    category: 'config-leak',
+    subcategory: 'cloud-credentials',
+    template: 'fake-aws-credentials',
+  },
+  {
+    pattern: /^\/(?:config\/)?aws\/config$/,
+    category: 'config-leak',
+    subcategory: 'aws',
+    template: 'fake-aws-config',
+  },
   // AWS keys persisted as JSON (`aws-credentials.json` / `aws_credentials.json`,
   // and bare `aws.json` — the file aws-sdk's `loadFromPath` examples use) at
   // any depth — the SDK-style camelCase counterpart to the INI
@@ -749,7 +805,7 @@ export const patternBait: PatternEntry[] = [
   // `cloud-credentials` subcategory.
   {
     pattern:
-      /^\/(?:[^/]+\/)*(?:keyfile|key|google-key|firebase-key|firebase-adminsdk|service-account|serviceAccountKey|serviceAccount|sa|google-credentials|gcp-sa|gcp-key|gcp-credentials|credentials|application_default_credentials)\.json$/,
+      /^\/(?:[^/]+\/)*(?:keyfile|key|google-key|firebase-key|firebase-adminsdk|firebase-adminsdk-service-account|service-account|service_account|service-account-key|google-service-account|gcp-service-account|gcloud-service-key|gcloud|vertex|serviceAccountKey|serviceAccount|sa|google-credentials|gcp-sa|gcp-key|gcp-credentials|credentials|application_default_credentials|(?:secrets|keys|config)\/(?:google|gcp))\.json$/,
     category: 'config-leak',
     subcategory: 'cloud-credentials',
     template: 'fake-gcp-service-account-key',

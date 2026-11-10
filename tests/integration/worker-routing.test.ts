@@ -395,6 +395,15 @@ describe('Worker routing', () => {
     expect(((await noRoute.json()) as { code: string }).code).toBe('rest_no_route');
   });
 
+  it('serves the Joomla CVE-2023-23752 config dump as JSON:API', async () => {
+    const response = await SELF.fetch(
+      'http://example.test/api/index.php/v1/config/application?public=true',
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('application/vnd.api+json');
+    expect(await response.text()).toContain('"dbprefix":"jos_"');
+  });
+
   it('serves the phpMyAdmin login decoy for the /pma/index.php login script', async () => {
     const response = await SELF.fetch('http://example.test/pma/index.php');
     expect(response.status).toBe(200);
