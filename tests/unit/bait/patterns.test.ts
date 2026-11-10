@@ -177,7 +177,10 @@ describe('bait patterns', () => {
   });
 
   it('does not misclassify lookalikes as dotenv', () => {
-    for (const p of ['/environment', '/.environment', '/api/env']) {
+    // `/environment` and `/api/env` were lookalike guards here until they
+    // were observed in env/credential sweeps (2026-11-10); they now route
+    // to fake-env on purpose. The dotted `.environment` stays unmatched.
+    for (const p of ['/.environment', '/foo/.environment', '/environment.yml']) {
       expect(findPatternBait(p)).toBeUndefined();
     }
   });
@@ -347,7 +350,9 @@ describe('bait patterns', () => {
   });
 
   it('does not over-match cloud credential lookalikes', () => {
-    for (const p of ['/foo.boto', '/.s3cfgx', '/.aws/credentialsx', '/.aws', '/aws/config']) {
+    // `/aws/config` used to be a guard here; it was observed in a cloud
+    // credential sweep (2026-11-10) and now routes to fake-aws-config.
+    for (const p of ['/foo.boto', '/.s3cfgx', '/.aws/credentialsx', '/.aws', '/foo/aws/config']) {
       expect(findPatternBait(p)).toBeUndefined();
     }
   });
@@ -1492,7 +1497,7 @@ describe('bait patterns', () => {
     expect(findPatternBait('/env.js')?.template).toBe('fake-js-config');
     expect(findPatternBait('/env.prod.js')?.template).toBe('fake-js-config');
     expect(findPatternBait('/env.json')?.template).toBe('fake-json-config');
-    expect(findPatternBait('/environment')).toBeUndefined();
+    expect(findPatternBait('/.environment')).toBeUndefined();
   });
 
   it('routes .envrc to the direnv decoy', () => {
@@ -1763,5 +1768,82 @@ describe('bait patterns', () => {
     expect(findPatternBait('/wp-json/wp/v2/graphql')?.template).toBe('graphql-introspection');
     expect(findPatternBait('/wp-json/wc/v3/customers')?.template).toBe('woocommerce-customers');
     expect(patternBait.at(-1)?.template).toBe('wordpress-rest-no-route');
+  });
+
+  it('routes the 2026-11-10 gap batch to its decoys', () => {
+    const cases: [string, string, string, string][] = [
+      [
+        '/api/index.php/v1/config/application',
+        'cve-recon',
+        'joomla-cve-2023-23752',
+        'joomla-api-config-application',
+      ],
+      ['/wrangler.toml', 'config-leak', 'cloudflare-workers', 'fake-wrangler-config'],
+      ['/wrangler.json', 'config-leak', 'cloudflare-workers', 'fake-wrangler-config'],
+      ['/.dev.vars', 'config-leak', 'dotenv-variant', 'fake-env'],
+      ['/env.txt', 'config-leak', 'dotenv-variant', 'fake-env'],
+      ['/environment', 'config-leak', 'dotenv-variant', 'fake-env'],
+      ['/api/env', 'config-leak', 'dotenv-variant', 'fake-env'],
+      ['/.secrets', 'config-leak', 'dotenv-variant', 'fake-env'],
+      ['/service_account.json', 'config-leak', 'cloud-credentials', 'fake-gcp-service-account-key'],
+      [
+        '/gcloud-service-key.json',
+        'config-leak',
+        'cloud-credentials',
+        'fake-gcp-service-account-key',
+      ],
+      [
+        '/firebase-adminsdk-service-account.json',
+        'config-leak',
+        'cloud-credentials',
+        'fake-gcp-service-account-key',
+      ],
+      ['/secrets/gcp.json', 'config-leak', 'cloud-credentials', 'fake-gcp-service-account-key'],
+      ['/keys/google.json', 'config-leak', 'cloud-credentials', 'fake-gcp-service-account-key'],
+      ['/credentials', 'config-leak', 'cloud-credentials', 'fake-aws-credentials'],
+      ['/.credentials', 'config-leak', 'cloud-credentials', 'fake-aws-credentials'],
+      ['/aws/credentials', 'config-leak', 'cloud-credentials', 'fake-aws-credentials'],
+      ['/config/aws/credentials', 'config-leak', 'cloud-credentials', 'fake-aws-credentials'],
+      ['/aws/config', 'config-leak', 'aws', 'fake-aws-config'],
+      ['/environment.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/local.settings.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/config/prod.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/settings/local.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/secrets/app.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/config.backup.json', 'config-leak', 'js-config', 'fake-json-config'],
+      ['/env-config.js', 'config-leak', 'js-config', 'fake-js-config'],
+      ['/runtime-env.js', 'config-leak', 'js-config', 'fake-js-config'],
+      ['/_phpinf.php', 'config-leak', 'phpinfo', 'phpinfo'],
+      ['/tool/view/phpinfo.view.php', 'config-leak', 'phpinfo', 'phpinfo'],
+      ['/wp-config.old.php', 'config-leak', 'wordpress', 'fake-wp-config'],
+    ];
+    for (const [path, category, sub, tpl] of cases) {
+      const m = findPatternBait(path);
+      expect(m?.category, path).toBe(category);
+      expect(m?.subcategory, path).toBe(sub);
+      expect(m?.template, path).toBe(tpl);
+    }
+  });
+
+  it('keeps the 2026-11-10 widenings off neighbouring and deferred paths', () => {
+    for (const p of [
+      '/api/credentials',
+      '/foo/credentials',
+      '/app.js',
+      '/main.js',
+      '/firebase.json',
+      '/google-services.json',
+      '/userinfo.php',
+      '/.well-known/security.txt',
+      '/samconfig.toml',
+      '/.vercel/project.json',
+    ]) {
+      expect(findPatternBait(p), p).toBeUndefined();
+    }
+    expect(findPatternBait('/package.json')?.template).not.toBe('fake-json-config');
+    // The live wp-config.php is not a backup copy.
+    expect(findPatternBait('/wp-config.php')?.template).not.toBe('fake-wp-config');
+    // Backup copies keep the generic backup → 404 route.
+    expect(findPatternBait('/wrangler.toml.bak')?.template).toBe('not-found');
   });
 });
