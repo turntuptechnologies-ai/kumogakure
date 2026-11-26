@@ -144,8 +144,10 @@ export default {
   scheduled: async (event, env, ctx) => {
     // Independent waitUntils: a stats failure must not block retention
     // GC (and vice-versa). Their data ranges do not overlap — stats
-    // aggregates yesterday, GC deletes rows older than RETENTION_DAYS.
+    // aggregates yesterday, GC deletes rows older than RETENTION_DAYS —
+    // only because both derive their window from the same scheduled time
+    // (RETENTION_DAYS >= 1 puts the GC cutoff at or before yesterday 00:00).
     ctx.waitUntil(runDailyStats(env, event.scheduledTime));
-    ctx.waitUntil(runDailyGc(env));
+    ctx.waitUntil(runDailyGc(env, event.scheduledTime));
   },
 } satisfies ExportedHandler<Env>;

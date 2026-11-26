@@ -186,7 +186,8 @@ pnpm exec wrangler tail --format pretty
 Each captured request emits a `"msg":"capture"` JSON line with the id,
 path, category, status, and signal list. Errors emit `"msg":"handler_error"`,
 and the daily GC run emits `gc_start` / `gc_complete` (or `gc_error` /
-`gc_r2_delete_failed` on failure).
+`gc_r2_delete_failed` on failure; a run with a failed R2 batch also emits
+`gc_d1_sweep_partial` — see Daily retention).
 
 ## 9. Daily retention
 
@@ -194,6 +195,24 @@ The Cron Trigger defined in `wrangler.jsonc` runs at `0 0 * * *` (00:00
 UTC) and deletes records older than `RETENTION_DAYS` (default 30). No
 manual setup is needed; the trigger is registered as part of
 `wrangler deploy`.
+
+The sweep deletes each expired request's R2 payload first, then its D1
+row. If an R2 batch delete fails (`gc_r2_delete_failed`), that run keeps
+every expired row that has a payload (`gc_d1_sweep_partial`) so the next
+run can retry; only rows without a payload are removed. Persistent
+`gc_d1_sweep_partial` lines mean payloads are outliving the retention
+window and R2 needs attention.
+
+Recommended backstop: the GC can only find payloads through their D1 rows,
+so a payload whose D1 insert failed at capture time is never swept. An R2
+lifecycle rule a day past the retention window catches those:
+
+```bash
+pnpm exec wrangler r2 bucket lifecycle add kumogakure-payloads retention-backstop --expire-days 31
+```
+
+Keep `--expire-days` above `RETENTION_DAYS` (default 30) so the rule never
+removes a payload whose D1 row is still within the window.
 
 To exercise the cleanup logic without waiting:
 

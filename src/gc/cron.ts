@@ -7,7 +7,7 @@ function resolveBatchSize(raw: string | undefined): number {
   return parsePositiveInt(raw) ?? DEFAULT_GC_BATCH_SIZE;
 }
 
-export async function runDailyGc(env: Env): Promise<void> {
+export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<void> {
   // No safe default for retention: an invalid value skips GC rather than
   // risk deleting against an assumed window.
   const retentionDays = parsePositiveInt(env.RETENTION_DAYS);
@@ -15,7 +15,11 @@ export async function runDailyGc(env: Env): Promise<void> {
     console.log(JSON.stringify({ msg: 'gc_skipped', reason: 'invalid_retention' }));
     return;
   }
-  const cutoff = Math.floor(Date.now() / 1000) - retentionDays * 86400;
+  // `nowMs` is the cron's scheduled time (the same base runDailyStats uses),
+  // not the actual start time: a late start would otherwise push the cutoff
+  // past yesterday 00:00 when RETENTION_DAYS=1 and delete rows the
+  // concurrently running stats job is still aggregating (#222).
+  const cutoff = Math.floor(nowMs / 1000) - retentionDays * 86400;
   const batchSize = resolveBatchSize(env.GC_BATCH_SIZE);
   console.log(
     JSON.stringify({
@@ -28,12 +32,16 @@ export async function runDailyGc(env: Env): Promise<void> {
 
   try {
     let r2Deleted = 0;
+    let r2Failed = 0;
     let totalScanned = 0;
     let offset = 0;
 
     while (true) {
+      // ORDER BY ts, id (a total order: id is the primary key) keeps the
+      // OFFSET pages disjoint. Without it SQL guarantees no order across
+      // separate statements, so pages could overlap and skip a row (#224).
       const { results } = await env.DB.prepare(
-        'SELECT r2_key FROM requests WHERE ts < ? AND r2_key IS NOT NULL LIMIT ? OFFSET ?',
+        'SELECT r2_key FROM requests WHERE ts < ? AND r2_key IS NOT NULL ORDER BY ts, id LIMIT ? OFFSET ?',
       )
         .bind(cutoff, batchSize, offset)
         .all<{ r2_key: string }>();
@@ -50,6 +58,7 @@ export async function runDailyGc(env: Env): Promise<void> {
           await env.PAYLOADS.delete(keys);
           r2Deleted += keys.length;
         } catch (err) {
+          r2Failed += keys.length;
           console.error(
             JSON.stringify({
               msg: 'gc_r2_delete_failed',
@@ -65,12 +74,24 @@ export async function runDailyGc(env: Env): Promise<void> {
       offset += results.length;
     }
 
-    await env.DB.prepare('DELETE FROM requests WHERE ts < ?').bind(cutoff).run();
+    if (r2Failed === 0) {
+      await env.DB.prepare('DELETE FROM requests WHERE ts < ?').bind(cutoff).run();
+    } else {
+      // A failed R2 batch means some payloads still exist. The D1 rows are the
+      // only reference to them, so keep every row that has an r2_key and let
+      // the next run retry (deleting an already-deleted key is a no-op).
+      // Deleting them here would orphan those payloads forever (#223).
+      await env.DB.prepare('DELETE FROM requests WHERE ts < ? AND r2_key IS NULL')
+        .bind(cutoff)
+        .run();
+      console.error(JSON.stringify({ msg: 'gc_d1_sweep_partial', cutoff, r2_failed: r2Failed }));
+    }
     console.log(
       JSON.stringify({
         msg: 'gc_complete',
         cutoff,
         r2_deleted: r2Deleted,
+        r2_failed: r2Failed,
         d1_rows_scanned: totalScanned,
       }),
     );
