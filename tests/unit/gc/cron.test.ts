@@ -135,6 +135,17 @@ describe('runDailyGc', () => {
     expect(deleteSql).toEqual(['DELETE FROM requests WHERE ts < ? AND r2_key IS NULL']);
   });
 
+  it('pages the payload scan in a total order (#224)', async () => {
+    const { env, prepare } = buildEnv('30', [[]]);
+
+    await runDailyGc(env);
+
+    const selectSql = prepare.mock.calls
+      .map((call) => String(call[0]))
+      .filter((sql) => sql.startsWith('SELECT'));
+    expect(selectSql[0]).toContain('ORDER BY ts, id LIMIT ? OFFSET ?');
+  });
+
   it('sweeps every expired row when all R2 batch deletes succeed', async () => {
     const { env, prepare } = buildEnv('30', [[{ r2_key: 'requests/2026/04/01/a.json.gz' }]]);
 

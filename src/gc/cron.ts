@@ -37,8 +37,11 @@ export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<
     let offset = 0;
 
     while (true) {
+      // ORDER BY ts, id (a total order: id is the primary key) keeps the
+      // OFFSET pages disjoint. Without it SQL guarantees no order across
+      // separate statements, so pages could overlap and skip a row (#224).
       const { results } = await env.DB.prepare(
-        'SELECT r2_key FROM requests WHERE ts < ? AND r2_key IS NOT NULL LIMIT ? OFFSET ?',
+        'SELECT r2_key FROM requests WHERE ts < ? AND r2_key IS NOT NULL ORDER BY ts, id LIMIT ? OFFSET ?',
       )
         .bind(cutoff, batchSize, offset)
         .all<{ r2_key: string }>();
