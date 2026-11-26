@@ -32,6 +32,7 @@ export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<
 
   try {
     let r2Deleted = 0;
+    let r2Failed = 0;
     let totalScanned = 0;
     let offset = 0;
 
@@ -54,6 +55,7 @@ export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<
           await env.PAYLOADS.delete(keys);
           r2Deleted += keys.length;
         } catch (err) {
+          r2Failed += keys.length;
           console.error(
             JSON.stringify({
               msg: 'gc_r2_delete_failed',
@@ -69,12 +71,24 @@ export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<
       offset += results.length;
     }
 
-    await env.DB.prepare('DELETE FROM requests WHERE ts < ?').bind(cutoff).run();
+    if (r2Failed === 0) {
+      await env.DB.prepare('DELETE FROM requests WHERE ts < ?').bind(cutoff).run();
+    } else {
+      // A failed R2 batch means some payloads still exist. The D1 rows are the
+      // only reference to them, so keep every row that has an r2_key and let
+      // the next run retry (deleting an already-deleted key is a no-op).
+      // Deleting them here would orphan those payloads forever (#223).
+      await env.DB.prepare('DELETE FROM requests WHERE ts < ? AND r2_key IS NULL')
+        .bind(cutoff)
+        .run();
+      console.error(JSON.stringify({ msg: 'gc_d1_sweep_partial', cutoff, r2_failed: r2Failed }));
+    }
     console.log(
       JSON.stringify({
         msg: 'gc_complete',
         cutoff,
         r2_deleted: r2Deleted,
+        r2_failed: r2Failed,
         d1_rows_scanned: totalScanned,
       }),
     );

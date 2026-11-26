@@ -112,6 +112,40 @@ describe('runDailyGc', () => {
     expect(run).toHaveBeenCalledTimes(1); // D1 sweep still ran.
   });
 
+  it('keeps rows with an r2_key when any R2 batch delete fails (#223)', async () => {
+    // Model counterexample: page 1 deletes fine, page 2's R2 delete throws.
+    // Deleting every expired row would orphan page 2's payloads forever.
+    const { env, prepare, run, r2Delete } = buildEnv(
+      '30',
+      [
+        [{ r2_key: 'requests/2026/04/01/a.json.gz' }, { r2_key: 'requests/2026/04/02/b.json.gz' }],
+        [{ r2_key: 'requests/2026/04/03/d.json.gz' }],
+      ],
+      { batchSize: '2' },
+    );
+    r2Delete.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('R2 unavailable'));
+
+    await runDailyGc(env);
+
+    expect(r2Delete).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenCalledTimes(1);
+    const deleteSql = prepare.mock.calls
+      .map((call) => String(call[0]))
+      .filter((sql) => sql.startsWith('DELETE'));
+    expect(deleteSql).toEqual(['DELETE FROM requests WHERE ts < ? AND r2_key IS NULL']);
+  });
+
+  it('sweeps every expired row when all R2 batch deletes succeed', async () => {
+    const { env, prepare } = buildEnv('30', [[{ r2_key: 'requests/2026/04/01/a.json.gz' }]]);
+
+    await runDailyGc(env);
+
+    const deleteSql = prepare.mock.calls
+      .map((call) => String(call[0]))
+      .filter((sql) => sql.startsWith('DELETE'));
+    expect(deleteSql).toEqual(['DELETE FROM requests WHERE ts < ?']);
+  });
+
   it('paginates the scan when results match the batch size', async () => {
     const batchSize = 2;
     const batch1 = [
