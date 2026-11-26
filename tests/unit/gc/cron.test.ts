@@ -68,6 +68,26 @@ describe('runDailyGc', () => {
     expect(prepare).not.toHaveBeenCalled();
   });
 
+  it('derives the cutoff from the scheduled time, not the (later) start time (#222)', async () => {
+    // Cron scheduled for 2026-05-02 00:00 UTC but started 7 s late. With
+    // RETENTION_DAYS=1 the cutoff must be yesterday 00:00 — the start of the
+    // window runDailyStats aggregates — never inside it.
+    const scheduledMs = Date.UTC(2026, 4, 2, 0, 0, 0);
+    vi.useFakeTimers();
+    vi.setSystemTime(scheduledMs + 7_000);
+    try {
+      const { env, bind, run } = buildEnv('1', [[]]);
+      await runDailyGc(env, scheduledMs);
+      const yesterdayMidnight = Date.UTC(2026, 4, 1, 0, 0, 0) / 1000;
+      expect(bind.mock.calls[0]?.[0]).toBe(yesterdayMidnight); // SELECT cutoff
+      expect(run).toHaveBeenCalledTimes(1);
+      const deleteBind = bind.mock.calls.at(-1);
+      expect(deleteBind?.[0]).toBe(yesterdayMidnight); // DELETE cutoff
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('passes a cutoff timestamp relative to now to the SELECT query', async () => {
     const { env, bind } = buildEnv('7', [[]]);
     const before = Math.floor(Date.now() / 1000);

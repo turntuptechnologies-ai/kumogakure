@@ -7,7 +7,7 @@ function resolveBatchSize(raw: string | undefined): number {
   return parsePositiveInt(raw) ?? DEFAULT_GC_BATCH_SIZE;
 }
 
-export async function runDailyGc(env: Env): Promise<void> {
+export async function runDailyGc(env: Env, nowMs: number = Date.now()): Promise<void> {
   // No safe default for retention: an invalid value skips GC rather than
   // risk deleting against an assumed window.
   const retentionDays = parsePositiveInt(env.RETENTION_DAYS);
@@ -15,7 +15,11 @@ export async function runDailyGc(env: Env): Promise<void> {
     console.log(JSON.stringify({ msg: 'gc_skipped', reason: 'invalid_retention' }));
     return;
   }
-  const cutoff = Math.floor(Date.now() / 1000) - retentionDays * 86400;
+  // `nowMs` is the cron's scheduled time (the same base runDailyStats uses),
+  // not the actual start time: a late start would otherwise push the cutoff
+  // past yesterday 00:00 when RETENTION_DAYS=1 and delete rows the
+  // concurrently running stats job is still aggregating (#222).
+  const cutoff = Math.floor(nowMs / 1000) - retentionDays * 86400;
   const batchSize = resolveBatchSize(env.GC_BATCH_SIZE);
   console.log(
     JSON.stringify({
